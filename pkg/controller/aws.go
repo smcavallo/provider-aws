@@ -81,6 +81,9 @@ import (
 	"github.com/crossplane/provider-aws/pkg/controller/secretsmanager/secret"
 	"github.com/crossplane/provider-aws/pkg/controller/sfn/activity"
 	"github.com/crossplane/provider-aws/pkg/controller/sfn/statemachine"
+	"github.com/crossplane/provider-aws/pkg/controller/sns/platformapplication"
+	"github.com/crossplane/provider-aws/pkg/controller/sns/platformendpoint"
+	"github.com/crossplane/provider-aws/pkg/controller/sns/topic"
 	"github.com/crossplane/provider-aws/pkg/controller/sqs/queue"
 )
 
@@ -148,6 +151,9 @@ func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 		key.SetupKey,
 		filesystem.SetupFileSystem,
 		dbcluster.SetupDBCluster,
+		platformapplication.SetupPlatformApplication,
+		platformendpoint.SetupPlatformEndpoint,
+		topic.SetupTopic,
 	} {
 		if err := setup(mgr, l, rl); err != nil {
 			return err

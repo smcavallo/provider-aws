@@ -45,6 +45,7 @@ import (
 	s3v1beta1 "github.com/crossplane/provider-aws/apis/s3/v1beta1"
 	secretsmanagerv1alpha1 "github.com/crossplane/provider-aws/apis/secretsmanager/v1alpha1"
 	sfnv1alpha1 "github.com/crossplane/provider-aws/apis/sfn/v1alpha1"
+	snsv1alpha1 "github.com/crossplane/provider-aws/apis/sns/v1alpha1"
 	sqsv1beta1 "github.com/crossplane/provider-aws/apis/sqs/v1beta1"
 	awsv1alpha3 "github.com/crossplane/provider-aws/apis/v1alpha3"
 	awsv1beta1 "github.com/crossplane/provider-aws/apis/v1beta1"
@@ -81,6 +82,7 @@ func init() {
 		kmsv1alpha1.SchemeBuilder.AddToScheme,
 		efsv1alpha1.SchemeBuilder.AddToScheme,
 		rdsv1alpha1.SchemeBuilder.AddToScheme,
+		snsv1alpha1.SchemeBuilder.AddToScheme,
 	)
 }
 

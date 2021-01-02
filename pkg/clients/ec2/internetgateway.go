@@ -2,8 +2,8 @@ package ec2
 
 import (
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/smithy-go"
 
 	"github.com/crossplane/provider-aws/apis/ec2/v1beta1"
 	awsclients "github.com/crossplane/provider-aws/pkg/clients"
@@ -34,23 +34,21 @@ func NewInternetGatewayClient(cfg aws.Config) InternetGatewayClient {
 
 // IsInternetGatewayNotFoundErr returns true if the error is because the item doesn't exist
 func IsInternetGatewayNotFoundErr(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == InternetGatewayIDNotFound {
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == InternetGatewayIDNotFound {
 			return true
 		}
 	}
-
 	return false
 }
 
 // IsInternetGatewayAlreadyAttached returns true if the error is because the item doesn't exist
 func IsInternetGatewayAlreadyAttached(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == InternetGatewayAlreadyAttached {
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == InternetGatewayAlreadyAttached {
 			return true
 		}
 	}
-
 	return false
 }
 

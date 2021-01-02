@@ -20,8 +20,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/smithy-go"
 	"github.com/crossplane/crossplane-runtime/pkg/test"
 	"github.com/google/go-cmp/cmp"
 
@@ -185,7 +185,7 @@ func TestReplicationObserve(t *testing.T) {
 				cl: NewReplicationConfigurationClient(fake.MockBucketClient{
 					MockGetBucketReplicationRequest: func(input *s3.GetBucketReplicationInput) s3.GetBucketReplicationRequest {
 						return s3.GetBucketReplicationRequest{
-							Request: s3Testing.CreateRequest(awserr.New(clients3.ReplicationErrCode, "", nil), &s3.GetBucketReplicationOutput{}),
+							Request: s3Testing.CreateRequest(smithy.GenericAPIError{Code: clients3.ReplicationErrCode}, &s3.GetBucketReplicationOutput{}),
 						}
 					},
 				}),

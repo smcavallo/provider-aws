@@ -18,14 +18,11 @@ package fake
 
 import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/aws/aws-sdk-go-v2/service/eks/eksiface"
 )
 
-var _ eksiface.ClientAPI = &MockClient{}
-
-// MockClient is a fake implementation of cloudmemorystore.Client.
+// MockClient is a fake implementation of eks.Client.
 type MockClient struct {
-	eksiface.ClientAPI
+	eks.Client
 
 	MockCreateClusterRequest        func(*eks.CreateClusterInput) eks.CreateClusterRequest
 	MockDescribeClusterRequest      func(*eks.DescribeClusterInput) eks.DescribeClusterRequest

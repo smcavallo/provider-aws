@@ -20,8 +20,8 @@ import (
 	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go-v2/service/sns/types"
 
 	"github.com/crossplane/provider-aws/apis/notification/v1alpha1"
 	awsclients "github.com/crossplane/provider-aws/pkg/clients"
@@ -157,7 +157,7 @@ func getTopicAttributes(p v1alpha1.SNSTopicParameters) map[string]string {
 
 // IsTopicNotFound returns true if the error code indicates that the item was not found
 func IsTopicNotFound(err error) bool {
-	if topicErr, ok := err.(awserr.Error); ok && topicErr.Code() == sns.ErrCodeNotFoundException {
+	if subErr, ok := err.(types.NotFoundException); ok {
 		return true
 	}
 	return false

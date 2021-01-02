@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2type "github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/crossplane/provider-aws/apis/ec2/v1alpha1"
@@ -22,7 +23,7 @@ var (
 	networkInterfaceOwnerID = "owner"
 	testKey                 = "key"
 	testValue               = "value"
-	ec2tag                  = ec2.Tag{Key: &testKey, Value: &testValue}
+	ec2tag                  = ec2type.Tag{Key: &testKey, Value: &testValue}
 	alpha1tag               = v1alpha1.Tag{Key: testKey, Value: testValue}
 )
 
@@ -45,7 +46,7 @@ func TestGenerateElasticIPObservation(t *testing.T) {
 				PrivateIpAddress:        aws.String(testIPAddress),
 				PublicIp:                aws.String(testIPAddress),
 				PublicIpv4Pool:          aws.String(poolName),
-				Tags:                    []ec2.Tag{ec2tag},
+				Tags:                    []ec2type.Tag{ec2tag},
 			},
 			out: v1alpha1.ElasticIPObservation{
 				AllocationID:            allocationID,
@@ -86,7 +87,7 @@ func TestIsEIPUpToDate(t *testing.T) {
 		"SameFields": {
 			args: args{
 				eip: ec2.Address{
-					Tags: []ec2.Tag{ec2tag},
+					Tags: []ec2type.Tag{ec2tag},
 				},
 				e: v1alpha1.ElasticIPParameters{
 					Tags: []v1alpha1.Tag{alpha1tag},
@@ -97,7 +98,7 @@ func TestIsEIPUpToDate(t *testing.T) {
 		"DifferentFields": {
 			args: args{
 				eip: ec2.Address{
-					Tags: []ec2.Tag{},
+					Tags: []ec2type.Tag{},
 				},
 				e: v1alpha1.ElasticIPParameters{
 					Tags: []v1alpha1.Tag{alpha1tag},

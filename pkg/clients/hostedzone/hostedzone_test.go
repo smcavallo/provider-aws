@@ -20,8 +20,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
+	"github.com/aws/aws-sdk-go-v2/service/route53/types"
 )
 
 func TestIsErrorNoSuchHostedZone(t *testing.T) {
@@ -30,11 +30,11 @@ func TestIsErrorNoSuchHostedZone(t *testing.T) {
 		want bool
 	}{
 		"validError": {
-			err:  awserr.New(route53.ErrCodeNoSuchHostedZone, "The specified hosted zone does not exist.", errors.New(route53.ErrCodeNoSuchHostedZone)),
+			err:  types.NoSuchHostedZone{},
 			want: true,
 		},
 		"invalidAwsError": {
-			err:  awserr.New(route53.ErrCodeHostedZoneNotFound, "The specified HostedZone can't be found.", errors.New(route53.ErrCodeHostedZoneNotFound)),
+			err:  smithy.GenericAPIError{Code: "something"},
 			want: false,
 		},
 		"randomError": {

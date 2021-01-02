@@ -22,8 +22,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
+	awsiamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 
@@ -147,7 +147,7 @@ func TestObserve(t *testing.T) {
 				iam: &fake.MockRolePolicyAttachmentClient{
 					MockListAttachedRolePoliciesRequest: func(input *awsiam.ListAttachedRolePoliciesInput) awsiam.ListAttachedRolePoliciesRequest {
 						return awsiam.ListAttachedRolePoliciesRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awserr.New(awsiam.ErrCodeNoSuchEntityException, "", nil)},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awsiamtypes.NoSuchEntityException{}},
 						}
 					},
 				},
@@ -374,7 +374,7 @@ func TestDelete(t *testing.T) {
 				iam: &fake.MockRolePolicyAttachmentClient{
 					MockDetachRolePolicyRequest: func(input *awsiam.DetachRolePolicyInput) awsiam.DetachRolePolicyRequest {
 						return awsiam.DetachRolePolicyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awserr.New(awsiam.ErrCodeNoSuchEntityException, "", nil)},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awsiamtypes.NoSuchEntityException{}},
 						}
 					},
 				},

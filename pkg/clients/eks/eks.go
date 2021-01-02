@@ -26,9 +26,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/aws/aws-sdk-go-v2/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/aws/aws-sdk-go-v2/service/sts/stsiface"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,10 +46,10 @@ const (
 )
 
 // Client defines EKS Client operations
-type Client eksiface.ClientAPI
+type Client eks.Client
 
 // STSClient defines STS Client operations
-type STSClient stsiface.ClientAPI
+type STSClient sts.Client
 
 // NewEKSClient creates new EKS Client with provided AWS Configurations/Credentials.
 func NewEKSClient(cfg aws.Config) Client {

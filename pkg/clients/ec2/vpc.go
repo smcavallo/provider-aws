@@ -2,8 +2,8 @@ package ec2
 
 import (
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/smithy-go"
 
 	"github.com/crossplane/provider-aws/apis/ec2/v1beta1"
 	awsclients "github.com/crossplane/provider-aws/pkg/clients"
@@ -32,8 +32,8 @@ func NewVPCClient(cfg aws.Config) VPCClient {
 
 // IsVPCNotFoundErr returns true if the error is because the item doesn't exist
 func IsVPCNotFoundErr(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == VPCIDNotFound {
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == VPCIDNotFound {
 			return true
 		}
 	}

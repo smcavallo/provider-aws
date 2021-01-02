@@ -24,8 +24,8 @@ import (
 	"github.com/crossplane/provider-aws/pkg/controller/s3/bucket"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	awss3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -96,7 +96,7 @@ func TestObserve(t *testing.T) {
 				s3: &fake.MockBucketClient{
 					MockHeadBucketRequest: func(input *awss3.HeadBucketInput) awss3.HeadBucketRequest {
 						return awss3.HeadBucketRequest{
-							Request: s3Testing.CreateRequest(awserr.New(s3.BucketErrCode, "", nil), nil),
+							Request: s3Testing.CreateRequest(awss3types.NoSuchBucket{}, nil),
 						}
 					},
 				},
@@ -580,7 +580,7 @@ func TestDelete(t *testing.T) {
 				s3: &fake.MockBucketClient{
 					MockDeleteBucketRequest: func(input *awss3.DeleteBucketInput) awss3.DeleteBucketRequest {
 						return awss3.DeleteBucketRequest{
-							Request: s3Testing.CreateRequest(awserr.New(s3.BucketErrCode, "", nil), &awss3.DeleteBucketOutput{}),
+							Request: s3Testing.CreateRequest(awss3types.NoSuchBucket{}, &awss3.DeleteBucketOutput{}),
 						}
 					},
 				},

@@ -21,7 +21,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
+	"github.com/aws/smithy-go"
 	"github.com/google/go-cmp/cmp"
 	"github.com/onsi/gomega"
 
@@ -53,8 +53,8 @@ func Test_IsInternetGatewayNotFoundErr(t *testing.T) {
 			false,
 		},
 		{
-			"VPCNotFoundErr is",
-			awserr.New(InternetGatewayIDNotFound, "", nil),
+			"InternetGatewayNotFoundErr is",
+			smithy.GenericAPIError{Code: InternetGatewayIDNotFound},
 			true,
 		},
 	}
@@ -87,8 +87,8 @@ func Test_IsRouteTableNotFoundErr(t *testing.T) {
 			false,
 		},
 		{
-			"VPCNotFoundErr is",
-			awserr.New(RouteTableIDNotFound, "", nil),
+			"RouteTableNotFoundErr is",
+			smithy.GenericAPIError{Code: RouteTableIDNotFound},
 			true,
 		},
 	}
@@ -121,8 +121,8 @@ func Test_IsRouteNotFoundErr(t *testing.T) {
 			false,
 		},
 		{
-			"VPCNotFoundErr is",
-			awserr.New(RouteNotFound, "", nil),
+			"RouteNotFoundErr is",
+			smithy.GenericAPIError{Code: RouteNotFound},
 			true,
 		},
 	}
@@ -155,8 +155,8 @@ func Test_IsAssociationIDNotFoundErr(t *testing.T) {
 			false,
 		},
 		{
-			"VPCNotFoundErr is",
-			awserr.New(AssociationIDNotFound, "", nil),
+			"AssociationIDNotFoundErr is",
+			smithy.GenericAPIError{Code: AssociationIDNotFound},
 			true,
 		},
 	}
@@ -189,8 +189,8 @@ func Test_IsSecurityGroupNotFoundErr(t *testing.T) {
 			false,
 		},
 		{
-			"VPCNotFoundErr is",
-			awserr.New(InvalidGroupNotFound, "", nil),
+			"SecurityGroupNotFoundErr is",
+			smithy.GenericAPIError{Code: InvalidGroupNotFound},
 			true,
 		},
 	}
@@ -223,8 +223,8 @@ func Test_IsSubnetNotFoundErr(t *testing.T) {
 			false,
 		},
 		{
-			"VPCNotFoundErr is",
-			awserr.New(SubnetIDNotFound, "", nil),
+			"SubnetNotFoundErr is",
+			smithy.GenericAPIError{Code: SubnetIDNotFound},
 			true,
 		},
 	}
@@ -258,7 +258,7 @@ func Test_IsVPCNotFoundErr(t *testing.T) {
 		},
 		{
 			"VPCNotFoundErr is",
-			awserr.New(VPCIDNotFound, "", nil),
+			smithy.GenericAPIError{Code: VPCIDNotFound},
 			true,
 		},
 	}

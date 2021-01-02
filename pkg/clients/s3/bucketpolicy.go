@@ -20,8 +20,9 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/crossplane/provider-aws/apis/s3/v1alpha3"
 )
@@ -40,15 +41,17 @@ func NewBucketPolicyClient(cfg aws.Config) BucketPolicyClient {
 
 // IsErrorPolicyNotFound returns true if the error code indicates that the item was not found
 func IsErrorPolicyNotFound(err error) bool {
-	if s3Err, ok := err.(awserr.Error); ok && s3Err.Code() == "NoSuchBucketPolicy" {
-		return true
+	if s3Err, ok := err.(smithy.APIError); ok {
+		if s3Err.ErrorCode() == "NoSuchBucketPolicy" {
+			return true
+		}
 	}
 	return false
 }
 
 // IsErrorBucketNotFound returns true if the error code indicates that the bucket was not found
 func IsErrorBucketNotFound(err error) bool {
-	if s3Err, ok := err.(awserr.Error); ok && s3Err.Code() == s3.ErrCodeNoSuchBucket {
+	if s3err, ok := err.(types.NoSuchBucket); ok {
 		return true
 	}
 	return false

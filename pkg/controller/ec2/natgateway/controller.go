@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
+	awsec2type "github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -134,7 +135,7 @@ func (e *external) Create(ctx context.Context, mgd resource.Managed) (managed.Ex
 	nat, err := e.client.CreateNatGatewayRequest(&awsec2.CreateNatGatewayInput{
 		AllocationId: cr.Spec.ForProvider.AllocationID,
 		SubnetId:     cr.Spec.ForProvider.SubnetID,
-		TagSpecifications: []awsec2.TagSpecification{
+		TagSpecifications: []awsec2type.TagSpecification{
 			{
 				ResourceType: "natgateway",
 				Tags:         v1beta1.GenerateEC2Tags(cr.Spec.ForProvider.Tags),

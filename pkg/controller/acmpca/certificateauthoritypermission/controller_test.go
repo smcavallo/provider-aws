@@ -22,8 +22,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	awsacmpca "github.com/aws/aws-sdk-go-v2/service/acmpca"
+	awsacmpcatypes "github.com/aws/aws-sdk-go-v2/service/acmpca/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 
@@ -305,7 +305,7 @@ func TestDelete(t *testing.T) {
 				acmpca: &fake.MockCertificateAuthorityPermissionClient{
 					MockDeletePermissionRequest: func(*awsacmpca.DeletePermissionInput) awsacmpca.DeletePermissionRequest {
 						return awsacmpca.DeletePermissionRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: awserr.New(awsacmpca.ErrCodeResourceNotFoundException, "", nil)},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: awscpcatypes.ResourceNotFoundException{}},
 						}
 					},
 					MockListPermissionsRequest: func(input *awsacmpca.ListPermissionsInput) awsacmpca.ListPermissionsRequest {
@@ -321,7 +321,7 @@ func TestDelete(t *testing.T) {
 			},
 			want: want{
 				cr:  certificateAuthorityPermission(withConditions(xpv1.Deleting())),
-				err: awsclient.Wrap(awserr.New(awsacmpca.ErrCodeResourceNotFoundException, "", nil), errDelete),
+				err: awsclient.Wrap(awsacmpcatypes.ResourceNotFoundException{}, errDelete),
 			},
 		},
 	}

@@ -19,14 +19,11 @@ package fake
 import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
-	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing/elasticloadbalancingiface"
 )
-
-var _ elasticloadbalancingiface.ClientAPI = &MockClient{}
 
 // MockClient is a fake implementation of elasticloadbalancingiface.ClientAPI.
 type MockClient struct {
-	elasticloadbalancingiface.ClientAPI
+	elasticloadbalancing.Client
 
 	MockDescribeLoadBalancersRequest                   func(*elb.DescribeLoadBalancersInput) elb.DescribeLoadBalancersRequest
 	MockCreateLoadBalancerRequest                      func(*elb.CreateLoadBalancerInput) elb.CreateLoadBalancerRequest

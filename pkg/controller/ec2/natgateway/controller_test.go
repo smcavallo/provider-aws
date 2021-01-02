@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
+	awsec2type "github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/smithy-go"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -112,8 +113,8 @@ func specNatSpec() v1beta1.NATGatewayParameters {
 	}
 }
 
-func natTags() []awsec2.Tag {
-	return []awsec2.Tag{
+func natTags() []awsec2type.Tag {
+	return []awsec2type.Tag{
 		{
 			Key:   aws.String("key1"),
 			Value: aws.String("value1"),
@@ -201,7 +202,7 @@ func TestObserve(t *testing.T) {
 				nat: &fake.MockNatGatewayClient{
 					MockDescribe: func(e *awsec2.DescribeNatGatewaysInput) awsec2.DescribeNatGatewaysRequest {
 						return awsec2.DescribeNatGatewaysRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awserr.New(ec2.NatGatewayNotFound, ec2.NatGatewayNotFound, errors.New(ec2.NatGatewayNotFound))},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: smithy.GenericAPIError{Code: ec2.NatGatewayNotFound}},
 						}
 					},
 				},

@@ -20,8 +20,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/smithy-go"
 	"github.com/crossplane/crossplane-runtime/pkg/test"
 	"github.com/google/go-cmp/cmp"
 
@@ -189,7 +189,7 @@ func TestWebsiteObserve(t *testing.T) {
 				cl: NewWebsiteConfigurationClient(fake.MockBucketClient{
 					MockGetBucketWebsiteRequest: func(input *s3.GetBucketWebsiteInput) s3.GetBucketWebsiteRequest {
 						return s3.GetBucketWebsiteRequest{
-							Request: s3Testing.CreateRequest(awserr.New(clients3.WebsiteErrCode, "", nil), &s3.GetBucketWebsiteOutput{}),
+							Request: s3Testing.CreateRequest(smithy.GenericAPIError{Code: clients3.WebsiteErrCode}, &s3.GetBucketWebsiteOutput{}),
 						}
 					},
 				}),

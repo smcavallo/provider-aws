@@ -21,8 +21,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
+	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/crossplane/provider-aws/apis/redshift/v1alpha1"
@@ -303,11 +303,11 @@ func TestIsNotFound(t *testing.T) {
 		want bool
 	}{
 		"validError": {
-			err:  awserr.New(redshift.ErrCodeClusterNotFoundFault, "ClusterNotFound", errors.New(redshift.ErrCodeClusterNotFoundFault)),
+			err:  types.ClusterNotFoundFault{},
 			want: true,
 		},
 		"invalidAwsError": {
-			err:  awserr.New(redshift.ErrCodeClusterAlreadyExistsFault, "ClusterAlreadyExists", errors.New(redshift.ErrCodeClusterAlreadyExistsFault)),
+			err:   smithy.GenericAPIError{Code: "something"},
 			want: false,
 		},
 		"randomError": {

@@ -22,8 +22,8 @@ import (
 
 	aws "github.com/crossplane/provider-aws/pkg/clients"
 
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/smithy-go"
 	"github.com/crossplane/crossplane-runtime/pkg/test"
 	"github.com/google/go-cmp/cmp"
 
@@ -145,7 +145,7 @@ func TestTaggingObserve(t *testing.T) {
 				cl: NewTaggingConfigurationClient(fake.MockBucketClient{
 					MockGetBucketTaggingRequest: func(input *s3.GetBucketTaggingInput) s3.GetBucketTaggingRequest {
 						return s3.GetBucketTaggingRequest{
-							Request: s3Testing.CreateRequest(awserr.New(clients3.TaggingErrCode, "", nil), &s3.GetBucketTaggingOutput{}),
+							Request: s3Testing.CreateRequest(smithy.GenericAPIError{Code: clients3.TaggingErrCode}, &s3.GetBucketTaggingOutput{}),
 						}
 					},
 				}),

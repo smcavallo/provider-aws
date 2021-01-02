@@ -18,8 +18,8 @@ package hostedzone
 
 import (
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
+	r53types "github.com/aws/aws-sdk-go-v2/service/route53/types"
 
 	"github.com/crossplane/provider-aws/apis/route53/v1alpha1"
 	awsclients "github.com/crossplane/provider-aws/pkg/clients"
@@ -43,7 +43,7 @@ func NewClient(cfg aws.Config) Client {
 
 // IsNotFound returns true if the error code indicates that the requested Zone was not found
 func IsNotFound(err error) bool {
-	if zoneErr, ok := err.(awserr.Error); ok && zoneErr.Code() == route53.ErrCodeNoSuchHostedZone {
+	if zoneErr, ok := err.(types.NoSuchHostedZone); ok {
 		return true
 	}
 	return false

@@ -47,7 +47,7 @@ func (mg *InternetGateway) ResolveReferences(ctx context.Context, c client.Reade
 
 	// Resolve spec.forProvider.vpcId
 	rsp, err := r.Resolve(ctx, reference.ResolutionRequest{
-		CurrentValue: aws.StringValue(mg.Spec.ForProvider.VPCID),
+		CurrentValue: *mg.Spec.ForProvider.VPCID,
 		Reference:    mg.Spec.ForProvider.VPCIDRef,
 		Selector:     mg.Spec.ForProvider.VPCIDSelector,
 		To:           reference.To{Managed: &VPC{}, List: &VPCList{}},
@@ -107,7 +107,7 @@ func (mg *Subnet) ResolveReferences(ctx context.Context, c client.Reader) error 
 
 	// Resolve spec.forProvider.vpcId
 	rsp, err := r.Resolve(ctx, reference.ResolutionRequest{
-		CurrentValue: aws.StringValue(mg.Spec.ForProvider.VPCID),
+		CurrentValue: *mg.Spec.ForProvider.VPCID,
 		Reference:    mg.Spec.ForProvider.VPCIDRef,
 		Selector:     mg.Spec.ForProvider.VPCIDSelector,
 		To:           reference.To{Managed: &VPC{}, List: &VPCList{}},

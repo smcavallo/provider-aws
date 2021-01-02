@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2type "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/google/go-cmp/cmp"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -24,8 +25,8 @@ var (
 	natFailureMessage     = "some failure message"
 )
 
-func natTags() []ec2.Tag {
-	return []ec2.Tag{
+func natTags() []ec2type.Tag {
+	return []ec2type.Tag{
 		{
 			Key:   aws.String("key1"),
 			Value: aws.String("value1"),

@@ -2,8 +2,8 @@ package ec2
 
 import (
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/smithy-go"
 
 	"github.com/crossplane/provider-aws/apis/ec2/v1beta1"
 	awsclients "github.com/crossplane/provider-aws/pkg/clients"
@@ -30,8 +30,8 @@ func NewSubnetClient(cfg aws.Config) SubnetClient {
 
 // IsSubnetNotFoundErr returns true if the error is because the item doesn't exist
 func IsSubnetNotFoundErr(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == SubnetIDNotFound {
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == SubnetIDNotFound {
 			return true
 		}
 	}

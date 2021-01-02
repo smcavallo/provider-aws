@@ -22,8 +22,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	awsacmpca "github.com/aws/aws-sdk-go-v2/service/acmpca"
+	awsacmpcatypes "github.com/aws/aws-sdk-go-v2/service/acmpca/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 
@@ -550,17 +550,17 @@ func TestDelete(t *testing.T) {
 				acmpca: &fake.MockCertificateAuthorityClient{
 					MockDeleteCertificateAuthorityRequest: func(*awsacmpca.DeleteCertificateAuthorityInput) awsacmpca.DeleteCertificateAuthorityRequest {
 						return awsacmpca.DeleteCertificateAuthorityRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: awserr.New(awsacmpca.ErrCodeResourceNotFoundException, "", nil)},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: awsacmpcatypes.ResourceNotFoundException{}},
 						}
 					},
 					MockDescribeCertificateAuthorityRequest: func(*awsacmpca.DescribeCertificateAuthorityInput) awsacmpca.DescribeCertificateAuthorityRequest {
 						return awsacmpca.DescribeCertificateAuthorityRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: awserr.New(awsacmpca.ErrCodeResourceNotFoundException, "", nil)},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: awsacmpcatypes.ResourceNotFoundException{}},
 						}
 					},
 					MockUpdateCertificateAuthorityRequest: func(*awsacmpca.UpdateCertificateAuthorityInput) awsacmpca.UpdateCertificateAuthorityRequest {
 						return awsacmpca.UpdateCertificateAuthorityRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: awserr.New(awsacmpca.ErrCodeResourceNotFoundException, "", nil)},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: awsacmpcatypes.ResourceNotFoundException{}},
 						}
 					},
 				},
@@ -568,7 +568,7 @@ func TestDelete(t *testing.T) {
 			},
 			want: want{
 				cr:  certificateAuthority(withConditions(xpv1.Deleting())),
-				err: awsclient.Wrap(awserr.New(awsacmpca.ErrCodeResourceNotFoundException, "", nil), errDelete),
+				err: awsclient.Wrap(awsacmpcatypes.ResourceNotFoundException{}, errDelete),
 			},
 		},
 	}

@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
@@ -158,7 +157,7 @@ func TestObserve(t *testing.T) {
 				s3: &fake.MockBucketPolicyClient{
 					MockGetBucketPolicyRequest: func(input *awss3.GetBucketPolicyInput) awss3.GetBucketPolicyRequest {
 						return awss3.GetBucketPolicyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: awserr.New("NoSuchBucketPolicy", "", nil)},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: smithy.GenericAPIError{Code: "NoSuchBucketPolicy"}},
 						}
 					},
 				},
@@ -369,7 +368,7 @@ func TestDelete(t *testing.T) {
 				s3: &fake.MockBucketPolicyClient{
 					MockDeleteBucketPolicyRequest: func(input *awss3.DeleteBucketPolicyInput) awss3.DeleteBucketPolicyRequest {
 						return awss3.DeleteBucketPolicyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: awserr.New("NoSuchBucketPolicy", "", nil)},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: smithy.GenericAPIError{Code: "NoSuchBucketPolicy"}},
 						}
 					},
 				},

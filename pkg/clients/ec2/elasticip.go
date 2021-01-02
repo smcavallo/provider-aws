@@ -2,10 +2,11 @@ package ec2
 
 import (
 	"sort"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/smithy-go"
 
 	"github.com/crossplane/provider-aws/apis/ec2/v1alpha1"
 	awsclients "github.com/crossplane/provider-aws/pkg/clients"
@@ -28,8 +29,8 @@ type ElasticIPClient interface {
 
 // IsAddressNotFoundErr returns true if the error is because the address doesn't exist
 func IsAddressNotFoundErr(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == ElasticIPAddressNotFound || awsErr.Code() == ElasticIPAllocationNotFound {
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if apiErr.ErrorCode() == ElasticIPAddressNotFound || apiErr.ErrorCode() == ElasticIPAllocationNotFound {
 			return true
 		}
 	}

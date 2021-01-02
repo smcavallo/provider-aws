@@ -5,8 +5,8 @@ import (
 	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/smithy-go"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
@@ -50,8 +50,8 @@ func NewRouteTableClient(cfg aws.Config) RouteTableClient {
 
 // IsRouteTableNotFoundErr returns true if the error is because the route table doesn't exist
 func IsRouteTableNotFoundErr(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == RouteTableIDNotFound {
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == RouteTableIDNotFound {
 			return true
 		}
 	}
@@ -60,8 +60,8 @@ func IsRouteTableNotFoundErr(err error) bool {
 
 // IsRouteNotFoundErr returns true if the error is because the route doesn't exist
 func IsRouteNotFoundErr(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == RouteNotFound {
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == RouteNotFound {
 			return true
 		}
 	}
@@ -70,8 +70,8 @@ func IsRouteNotFoundErr(err error) bool {
 
 // IsAssociationIDNotFoundErr returns true if the error is because the association doesn't exist
 func IsAssociationIDNotFoundErr(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == AssociationIDNotFound {
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == AssociationIDNotFound {
 			return true
 		}
 	}

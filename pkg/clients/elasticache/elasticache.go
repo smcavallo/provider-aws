@@ -29,7 +29,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
-	"github.com/aws/aws-sdk-go-v2/service/elasticache/elasticacheiface"
 
 	"github.com/crossplane/provider-aws/apis/cache/v1alpha1"
 	cachev1alpha1 "github.com/crossplane/provider-aws/apis/cache/v1alpha1"
@@ -41,7 +40,7 @@ const errCheckUpToDate = "unable to determine if external resource is up to date
 
 // A Client handles CRUD operations for ElastiCache resources. This interface is
 // compatible with the upstream AWS redis client.
-type Client elasticacheiface.ClientAPI
+type Client elasticache.Client
 
 // NewClient returns a new ElastiCache client. Credentials must be passed as
 // JSON encoded data.

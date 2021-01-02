@@ -21,21 +21,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/url"
-	"os"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
-	"github.com/aws/aws-sdk-go-v2/aws/endpoints"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	ec2type "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	awsv1 "github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
+	credentialsv1 "github.com/aws/aws-sdk-go/aws/credentials"
 	endpointsv1 "github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
@@ -122,13 +116,12 @@ func SetResolver(ctx context.Context, mg resource.Managed, cfg *aws.Config) *aws
 				endpoint.SigningRegion = Region
 			}
 
-			defaultResolver := endpoints.NewDefaultResolver()
 			endpointResolver := func(service, region string) (aws.Endpoint, error) {
 				if strings.Contains(ServiceID, service) {
 					return endpoint, nil
 				}
 
-				return defaultResolver.ResolveEndpoint(service, region)
+				return endpoint, &aws.EndpointNotFoundError{}
 			}
 			cfg.EndpointResolver = aws.EndpointResolverFunc(endpointResolver)
 		}
@@ -148,7 +141,7 @@ func UseProvider(ctx context.Context, c client.Client, mg resource.Managed, regi
 		region = p.Spec.Region
 	}
 
-	if aws.BoolValue(p.Spec.UseServiceAccount) {
+	if *p.Spec.UseServiceAccount {
 		return UsePodServiceAccount(ctx, []byte{}, DefaultSection, region)
 	}
 
@@ -204,62 +197,26 @@ func CredentialsIDSecret(data []byte, profile string) (aws.Credentials, error) {
 type AuthMethod func(context.Context, []byte, string, string) (*aws.Config, error)
 
 // UseProviderSecret - AWS configuration which can be used to issue requests against AWS API
-func UseProviderSecret(_ context.Context, data []byte, profile, region string) (*aws.Config, error) {
+func UseProviderSecret(ctx context.Context, data []byte, profile, region string) (*aws.Config, error) {
 	creds, err := CredentialsIDSecret(data, profile)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot parse credentials secret")
 	}
 
-	shared := external.SharedConfig{
-		Credentials: creds,
-		Region:      region,
-	}
-
-	config, err := external.LoadDefaultAWSConfig(shared)
+	config, err := config.LoadDefaultConfig(ctx, config.WithRegion(region), config.WithCredentialsProvider(credentials.StaticCredentialsProvider{
+		Value: creds,
+	}))
 	return &config, err
 }
 
 // UsePodServiceAccount assumes an IAM role configured via a ServiceAccount.
 // https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html
-//
-// TODO(hasheddan): This should be replaced by the implementation of the Web
-// Identity Token Provider in the following PR after merge and subsequent
-// release of AWS SDK: https://github.com/aws/aws-sdk-go-v2/pull/488
 func UsePodServiceAccount(ctx context.Context, _ []byte, _, region string) (*aws.Config, error) {
-	cfg, err := external.LoadDefaultAWSConfig()
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load default AWS config")
 	}
-	cfg.Region = region
-	svc := sts.New(cfg)
-
-	b, err := ioutil.ReadFile(os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE"))
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to read web identity token file in pod")
-	}
-	token := string(b)
-	sess := strconv.FormatInt(time.Now().UnixNano(), 10)
-	role := os.Getenv("AWS_ROLE_ARN")
-	resp, err := svc.AssumeRoleWithWebIdentityRequest(
-		&sts.AssumeRoleWithWebIdentityInput{
-			RoleSessionName:  &sess,
-			WebIdentityToken: &token,
-			RoleArn:          &role,
-		}).Send(ctx)
-	if err != nil {
-		return nil, err
-	}
-	creds := aws.Credentials{
-		AccessKeyID:     aws.StringValue(resp.Credentials.AccessKeyId),
-		SecretAccessKey: aws.StringValue(resp.Credentials.SecretAccessKey),
-		SessionToken:    aws.StringValue(resp.Credentials.SessionToken),
-	}
-	shared := external.SharedConfig{
-		Credentials: creds,
-		Region:      region,
-	}
-	config, err := external.LoadDefaultAWSConfig(shared)
-	return &config, err
+	return &cfg, err
 }
 
 // NOTE(muvaf): ACK-generated controllers use aws/aws-sdk-go instead of
@@ -328,42 +285,23 @@ func UseProviderSecretV1(ctx context.Context, data []byte, mg resource.Managed, 
 		return nil, errors.New("returned key can be empty but cannot be nil")
 	}
 
-	creds := credentials.NewStaticCredentials(accessKeyID.Value(), secretAccessKey.Value(), sessionToken.Value())
+	creds := credentialsv1.NewStaticCredentials(accessKeyID.Value(), secretAccessKey.Value(), sessionToken.Value())
 	return SetResolverV1(ctx, mg, awsv1.NewConfig().WithCredentials(creds).WithRegion(region)), nil
 }
 
 // UsePodServiceAccountV1 assumes an IAM role configured via a ServiceAccount.
 // https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html
 func UsePodServiceAccountV1(ctx context.Context, _ []byte, mg resource.Managed, _, region string) (*awsv1.Config, error) {
-	cfg, err := external.LoadDefaultAWSConfig()
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load default AWS config")
 	}
-	cfg.Region = region
-	svc := sts.New(cfg)
-
-	b, err := ioutil.ReadFile(os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE"))
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to read web identity token file in pod")
-	}
-	token := string(b)
-	sess := strconv.FormatInt(time.Now().UnixNano(), 10)
-	role := os.Getenv("AWS_ROLE_ARN")
-	resp, err := svc.AssumeRoleWithWebIdentityRequest(
-		&sts.AssumeRoleWithWebIdentityInput{
-			RoleSessionName:  &sess,
-			WebIdentityToken: &token,
-			RoleArn:          &role,
-		}).Send(ctx)
-	if err != nil {
-		return nil, err
-	}
-	creds := credentials.NewStaticCredentials(
-		aws.StringValue(resp.Credentials.AccessKeyId),
-		aws.StringValue(resp.Credentials.SecretAccessKey),
-		aws.StringValue(resp.Credentials.SessionToken))
-
-	return SetResolverV1(ctx, mg, awsv1.NewConfig().WithCredentials(creds).WithRegion(region)), nil
+	v2creds, err := cfg.Credentials.Retrieve(ctx)
+	v1creds := credentialsv1.NewStaticCredentials(
+		v2creds.AccessKeyID,
+		v2creds.SecretAccessKey,
+		v2creds.SessionToken)
+	return SetResolverV1(ctx, mg, awsv1.NewConfig().WithCredentials(v1creds).WithRegion(region)), nil
 }
 
 // SetResolverV1 parses annotations from the managed resource
@@ -432,7 +370,11 @@ func String(v string, o ...FieldOption) *string {
 // empty string if the pointer is nil.
 // TODO(muvaf): is this really meaningful? why not implement it?
 func StringValue(v *string) string {
-	return aws.StringValue(v)
+	return aws.ToString(v)
+}
+
+func BoolValue(v *bool) bool {
+	return aws.ToBool(v)
 }
 
 // Int64Value converts the supplied int64 pointer to a int64, returning
@@ -576,27 +518,27 @@ func DiffTags(local, remote map[string]string) (add map[string]string, remove []
 	return
 }
 
-// DiffEC2Tags returns []ec2.Tag that should be added or removed.
-func DiffEC2Tags(local []ec2.Tag, remote []ec2.Tag) (add []ec2.Tag, remove []ec2.Tag) {
+// DiffEC2Tags returns []ec2type.Tag that should be added or removed.
+func DiffEC2Tags(local []ec2type.Tag, remote []ec2type.Tag) (add []ec2type.Tag, remove []ec2type.Tag) {
 	var tagsToAdd = make(map[string]string, len(local))
-	add = []ec2.Tag{}
-	remove = []ec2.Tag{}
+	add = []ec2type.Tag{}
+	remove = []ec2type.Tag{}
 	for _, j := range local {
-		tagsToAdd[aws.StringValue(j.Key)] = aws.StringValue(j.Value)
+		tagsToAdd[aws.ToString(j.Key)] = aws.ToString(j.Value)
 	}
 	for _, j := range remote {
-		switch val, ok := tagsToAdd[aws.StringValue(j.Key)]; {
-		case ok && val == aws.StringValue(j.Value):
-			delete(tagsToAdd, aws.StringValue(j.Key))
+		switch val, ok := tagsToAdd[aws.ToString(j.Key)]; {
+		case ok && val == aws.ToString(j.Value):
+			delete(tagsToAdd, aws.ToString(j.Key))
 		case !ok:
-			remove = append(remove, ec2.Tag{
+			remove = append(remove, ec2type.Tag{
 				Key:   j.Key,
 				Value: nil,
 			})
 		}
 	}
 	for i, j := range tagsToAdd {
-		add = append(add, ec2.Tag{
+		add = append(add, ec2type.Tag{
 			Key:   aws.String(i),
 			Value: aws.String(j),
 		})

@@ -1,15 +1,35 @@
 module github.com/crossplane/provider-aws
 
-go 1.13
+go 1.15
 
 require (
 	github.com/aws/aws-sdk-go v1.37.4
-	github.com/aws/aws-sdk-go-v2 v0.23.0
+	github.com/aws/aws-sdk-go-v2 v0.31.0
+	github.com/aws/aws-sdk-go-v2/config v0.4.0
+	github.com/aws/aws-sdk-go-v2/credentials v0.2.0
+	github.com/aws/aws-sdk-go-v2/service/acm v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/acmpca v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/ecr v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/eks v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/elasticache v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/iam v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/rds v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/redshift v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/route53 v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/sns v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/sqs v0.31.0
+	github.com/aws/aws-sdk-go-v2/service/sts v0.31.0
+	github.com/aws/smithy-go v0.5.0
 	github.com/crossplane/crossplane-runtime v0.13.0
 	github.com/crossplane/crossplane-tools v0.0.0-20201201125637-9ddc70edfd0d
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/go-ini/ini v1.46.0
-	github.com/google/go-cmp v0.5.2
+	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
+	github.com/google/go-cmp v0.5.4
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mitchellh/copystructure v1.0.0
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect

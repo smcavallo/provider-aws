@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/smithy-go"
 	"github.com/crossplane/crossplane-runtime/pkg/test"
 	"github.com/google/go-cmp/cmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -223,7 +223,7 @@ func TestLifecycleObserve(t *testing.T) {
 				cl: NewLifecycleConfigurationClient(fake.MockBucketClient{
 					MockGetBucketLifecycleConfigurationRequest: func(input *s3.GetBucketLifecycleConfigurationInput) s3.GetBucketLifecycleConfigurationRequest {
 						return s3.GetBucketLifecycleConfigurationRequest{
-							Request: s3Testing.CreateRequest(awserr.New(clients3.LifecycleErrCode, "", nil), &s3.GetBucketLifecycleConfigurationOutput{Rules: nil}),
+							Request: s3Testing.CreateRequest(smithy.GenericAPIError{Code: clients3.LifecycleErrCode}, &s3.GetBucketLifecycleConfigurationOutput{Rules: nil}),
 						}
 					},
 				}),

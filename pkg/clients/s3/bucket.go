@@ -22,16 +22,15 @@ import (
 	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go"
 	"github.com/crossplane/crossplane-runtime/pkg/meta"
 
 	"github.com/crossplane/provider-aws/apis/s3/v1beta1"
 )
 
 var (
-	// BucketErrCode is the error code sent by AWS when a bucket does not exist
-	BucketErrCode = "NotFound"
 	// CORSErrCode is the error code sent by AWS when the CORS configuration does not exist
 	CORSErrCode = "NoSuchCORSConfiguration"
 	// ReplicationErrCode is the error code sent by AWS when the replication config does not exist
@@ -112,7 +111,7 @@ func IsNotFound(err error) bool {
 	if err == nil {
 		return false
 	}
-	if bucketErr, ok := err.(awserr.Error); ok && bucketErr.Code() == BucketErrCode {
+	if bucketErr, ok := err.(types.NoSuchBucket); ok {
 		return true
 	}
 	return false
@@ -123,7 +122,7 @@ func IsAlreadyExists(err error) bool {
 	if err == nil {
 		return false
 	}
-	if bucketErr, ok := err.(awserr.Error); ok && bucketErr.Code() == s3.ErrCodeBucketAlreadyOwnedByYou {
+	if bucketErr, ok := err.(types.BucketAlreadyOwnedByYou); ok {
 		return true
 	}
 	return false
@@ -156,64 +155,80 @@ func GenerateBucketObservation(name string) v1beta1.BucketExternalStatus {
 
 // CORSConfigurationNotFound is parses the aws Error and validates if the cors configuration does not exist
 func CORSConfigurationNotFound(err error) bool {
-	if s3Err, ok := err.(awserr.Error); ok && s3Err.Code() == CORSErrCode {
-		return true
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == CORSErrCode {
+			return true
+		}
 	}
 	return false
 }
 
 // ReplicationConfigurationNotFound is parses the aws Error and validates if the replication configuration does not exist
 func ReplicationConfigurationNotFound(err error) bool {
-	if s3Err, ok := err.(awserr.Error); ok && s3Err.Code() == ReplicationErrCode {
-		return true
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == ReplicationErrCode {
+			return true
+		}
 	}
 	return false
 }
 
 // LifecycleConfigurationNotFound is parses the aws Error and validates if the lifecycle configuration does not exist
 func LifecycleConfigurationNotFound(err error) bool {
-	if s3Err, ok := err.(awserr.Error); ok && s3Err.Code() == LifecycleErrCode {
-		return true
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == LifecycleErrCode {
+			return true
+		}
 	}
 	return false
 }
 
 // SSEConfigurationNotFound is parses the aws Error and validates if the SSE configuration does not exist
 func SSEConfigurationNotFound(err error) bool {
-	if s3Err, ok := err.(awserr.Error); ok && s3Err.Code() == SSEErrCode {
-		return true
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == SSEErrCode {
+			return true
+		}
 	}
 	return false
 }
 
 // TaggingNotFound is parses the aws Error and validates if the tagging configuration does not exist
 func TaggingNotFound(err error) bool {
-	if s3Err, ok := err.(awserr.Error); ok && s3Err.Code() == TaggingErrCode {
-		return true
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == TaggingErrCode {
+			return true
+		}
 	}
 	return false
 }
 
 // WebsiteConfigurationNotFound is parses the aws Error and validates if the website configuration does not exist
 func WebsiteConfigurationNotFound(err error) bool {
-	if s3Err, ok := err.(awserr.Error); ok && s3Err.Code() == WebsiteErrCode {
-		return true
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == WebsiteErrCode {
+			return true
+		}
 	}
 	return false
 }
 
 // MethodNotSupported is parses the aws Error and validates if the method is allowed for a request
 func MethodNotSupported(err error) bool {
-	if s3Err, ok := err.(awserr.Error); ok && s3Err.Code() == MethodNotAllowed {
-		return true
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == MethodNotAllowed {
+			return true
+		}
 	}
 	return false
 }
 
 // ArgumentNotSupported is parses the aws Error and validates if parameters are now allowed for a request
 func ArgumentNotSupported(err error) bool {
-	if s3Err, ok := err.(awserr.Error); ok && s3Err.Code() == UnsupportedArgument {
-		return true
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == UnsupportedArgument {
+			return true
+		}
 	}
 	return false
 }

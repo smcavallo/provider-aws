@@ -20,8 +20,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/smithy-go"
 	"github.com/crossplane/crossplane-runtime/pkg/test"
 	"github.com/google/go-cmp/cmp"
 
@@ -129,7 +129,7 @@ func TestCORSObserve(t *testing.T) {
 				cl: NewCORSConfigurationClient(fake.MockBucketClient{
 					MockGetBucketCorsRequest: func(input *s3.GetBucketCorsInput) s3.GetBucketCorsRequest {
 						return s3.GetBucketCorsRequest{
-							Request: s3Testing.CreateRequest(awserr.New(clients3.CORSErrCode, "", nil), &s3.GetBucketCorsOutput{CORSRules: nil}),
+							Request: s3Testing.CreateRequest(smithy.GenericAPIError{Code: clients3.CORSErrCode}, &s3.GetBucketCorsOutput{CORSRules: nil}),
 						}
 					},
 				}),

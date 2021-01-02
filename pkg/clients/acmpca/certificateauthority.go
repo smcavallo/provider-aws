@@ -17,29 +17,31 @@ limitations under the License.
 package acmpca
 
 import (
+	"context"
+	"errors"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/acmpca"
+	"github.com/aws/aws-sdk-go-v2/service/acmpca/types"
 
 	"github.com/crossplane/provider-aws/apis/acmpca/v1alpha1"
 )
 
 // Client defines the CertificateManager operations
 type Client interface {
-	CreateCertificateAuthorityRequest(*acmpca.CreateCertificateAuthorityInput) acmpca.CreateCertificateAuthorityRequest
-	DeleteCertificateAuthorityRequest(*acmpca.DeleteCertificateAuthorityInput) acmpca.DeleteCertificateAuthorityRequest
-	UpdateCertificateAuthorityRequest(*acmpca.UpdateCertificateAuthorityInput) acmpca.UpdateCertificateAuthorityRequest
-	DescribeCertificateAuthorityRequest(*acmpca.DescribeCertificateAuthorityInput) acmpca.DescribeCertificateAuthorityRequest
-	ListTagsRequest(*acmpca.ListTagsInput) acmpca.ListTagsRequest
-	UntagCertificateAuthorityRequest(*acmpca.UntagCertificateAuthorityInput) acmpca.UntagCertificateAuthorityRequest
-	TagCertificateAuthorityRequest(*acmpca.TagCertificateAuthorityInput) acmpca.TagCertificateAuthorityRequest
+	CreateCertificateAuthority(context.Context, *acmpca.CreateCertificateAuthorityInput, ...func(*acmpca.Options)) (*acmpca.CreateCertificateAuthorityOutput, error)
+	DeleteCertificateAuthority(context.Context, *acmpca.DeleteCertificateAuthorityInput, ...func(*acmpca.Options)) (*acmpca.DeleteCertificateAuthorityOutput, error)
+	UpdateCertificateAuthority(context.Context, *acmpca.UpdateCertificateAuthorityInput, ...func(*acmpca.Options)) (*acmpca.UpdateCertificateAuthorityOutput, error)
+	DescribeCertificateAuthority(context.Context, *acmpca.DescribeCertificateAuthorityInput, ...func(*acmpca.Options)) (*acmpca.DescribeCertificateAuthorityOutput, error)
+	ListTags(context.Context, *acmpca.ListTagsInput, ...func(*acmpca.Options)) (*acmpca.ListTagsOutput, error)
+	UntagCertificateAuthority(context.Context, *acmpca.UntagCertificateAuthorityInput, ...func(*acmpca.Options)) (*acmpca.UntagCertificateAuthorityOutput, error)
+	TagCertificateAuthority(context.Context, *acmpca.TagCertificateAuthorityInput, ...func(*acmpca.Options)) (*acmpca.TagCertificateAuthorityOutput, error)
 }
 
 // NewClient returns a new client using AWS credentials as JSON encoded data.
 func NewClient(conf *aws.Config) Client {
-	return acmpca.New(*conf)
+	return acmpca.NewFromConfig(*conf)
 }
 
 // GenerateCreateCertificateAuthorityInput from certificateAuthorityParameters
@@ -50,7 +52,7 @@ func GenerateCreateCertificateAuthorityInput(p *v1alpha1.CertificateAuthorityPar
 		RevocationConfiguration:           GenerateRevocationConfiguration(p.RevocationConfiguration),
 	}
 
-	m.Tags = make([]acmpca.Tag, len(p.Tags))
+	m.Tags = make([]types.Tag, len(p.Tags))
 	for i, val := range p.Tags {
 		m.Tags[i] = acmpca.Tag{
 			Key:   aws.String(val.Key),
@@ -62,7 +64,7 @@ func GenerateCreateCertificateAuthorityInput(p *v1alpha1.CertificateAuthorityPar
 }
 
 // GenerateCertificateAuthorityConfiguration from CertificateAuthorityConfiguration
-func GenerateCertificateAuthorityConfiguration(p v1alpha1.CertificateAuthorityConfiguration) *acmpca.CertificateAuthorityConfiguration { // nolint:gocyclo
+func GenerateCertificateAuthorityConfiguration(p v1alpha1.CertificateAuthorityConfiguration) *types.CertificateAuthorityConfiguration { // nolint:gocyclo
 
 	m := &acmpca.CertificateAuthorityConfiguration{
 		Subject: &acmpca.ASN1Subject{
@@ -89,12 +91,12 @@ func GenerateCertificateAuthorityConfiguration(p v1alpha1.CertificateAuthorityCo
 }
 
 // GenerateRevocationConfiguration from RevocationConfiguration
-func GenerateRevocationConfiguration(p *v1alpha1.RevocationConfiguration) *acmpca.RevocationConfiguration {
+func GenerateRevocationConfiguration(p *v1alpha1.RevocationConfiguration) *types.RevocationConfiguration {
 	if p == nil {
 		return nil
 	}
 
-	m := &acmpca.RevocationConfiguration{
+	m := &types.RevocationConfiguration{
 		CrlConfiguration: &acmpca.CrlConfiguration{
 			CustomCname:      p.CustomCname,
 			Enabled:          aws.Bool(p.Enabled),
@@ -140,7 +142,7 @@ func LateInitializeCertificateAuthority(in *v1alpha1.CertificateAuthorityParamet
 }
 
 // IsCertificateAuthorityUpToDate checks whether there is a change in any of the modifiable fields.
-func IsCertificateAuthorityUpToDate(p *v1alpha1.CertificateAuthority, cd acmpca.CertificateAuthority, tags []acmpca.Tag) bool { // nolint:gocyclo
+func IsCertificateAuthorityUpToDate(p *v1alpha1.CertificateAuthority, cd types.CertificateAuthority, tags []types.Tag) bool { // nolint:gocyclo
 
 	if aws.BoolValue(cd.RevocationConfiguration.CrlConfiguration.Enabled) {
 		if !strings.EqualFold(aws.StringValue(p.Spec.ForProvider.RevocationConfiguration.CustomCname), aws.StringValue(cd.RevocationConfiguration.CrlConfiguration.CustomCname)) {
@@ -186,7 +188,7 @@ func IsCertificateAuthorityUpToDate(p *v1alpha1.CertificateAuthority, cd acmpca.
 }
 
 // GenerateCertificateAuthorityExternalStatus is used to produce CertificateAuthorityExternalStatus from acmpca.certificateAuthorityStatus and v1alpha1.CertificateAuthority
-func GenerateCertificateAuthorityExternalStatus(certificateAuthority acmpca.CertificateAuthority) v1alpha1.CertificateAuthorityExternalStatus {
+func GenerateCertificateAuthorityExternalStatus(certificateAuthority types.CertificateAuthority) v1alpha1.CertificateAuthorityExternalStatus {
 	return v1alpha1.CertificateAuthorityExternalStatus{
 		CertificateAuthorityARN: aws.StringValue(certificateAuthority.Arn),
 		Serial:                  aws.StringValue(certificateAuthority.Serial),
@@ -196,11 +198,9 @@ func GenerateCertificateAuthorityExternalStatus(certificateAuthority acmpca.Cert
 
 // IsErrorNotFound returns true if the error code indicates that the item was not found
 func IsErrorNotFound(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == acmpca.ErrCodeInvalidStateException {
-			return true
-		}
+	var ise *types.InvalidStateException
+	if errors.As(err, &ise) {
+		return true
 	}
-
 	return false
 }

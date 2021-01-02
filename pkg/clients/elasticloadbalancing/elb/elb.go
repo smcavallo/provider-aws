@@ -22,9 +22,8 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
-	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing/elasticloadbalancingiface"
+	"github.com/aws/smithy-go"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
@@ -35,7 +34,7 @@ import (
 )
 
 // A Client handles CRUD operations for Elastic Load Balancing resources.
-type Client elasticloadbalancingiface.ClientAPI
+type Client elb.Client
 
 // NewClient returns a new Elastic Load Balancer client. Credentials must be passed as
 // JSON encoded data.
@@ -103,9 +102,12 @@ func LateInitializeELB(in *v1alpha1.ELBParameters, v *elb.LoadBalancerDescriptio
 }
 
 // IsELBNotFound returns true if the error is because the item doesn't exist.
+
 func IsELBNotFound(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == elb.ErrCodeAccessPointNotFoundException {
-		return true
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == ErrCodeAccessPointNotFoundException {
+			return true
+		}
 	}
 	return false
 }

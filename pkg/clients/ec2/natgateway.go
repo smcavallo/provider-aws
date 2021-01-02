@@ -2,8 +2,9 @@ package ec2
 
 import (
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/smithy-go"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/crossplane/provider-aws/apis/ec2/v1beta1"
@@ -31,12 +32,11 @@ func NewNatGatewayClient(cfg aws.Config) NatGatewayClient {
 
 // IsNatGatewayNotFoundErr returns true if the error is because the item doesn't exist
 func IsNatGatewayNotFoundErr(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == NatGatewayNotFound {
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == NatGatewayNotFound {
 			return true
 		}
 	}
-
 	return false
 }
 

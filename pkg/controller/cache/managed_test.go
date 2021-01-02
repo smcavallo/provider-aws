@@ -23,8 +23,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
+	"github.com/aws/aws-sdk-go-v2/service/elasticache/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/pkg/errors"
@@ -562,10 +562,7 @@ func TestDelete(t *testing.T) {
 					return elasticache.DeleteReplicationGroupRequest{
 						Request: &aws.Request{
 							HTTPRequest: &http.Request{},
-							Error: awserr.New(
-								elasticache.ErrCodeReplicationGroupNotFoundFault,
-								"NotFound",
-								fmt.Errorf("NotFound"))},
+							Error: types.ReplicationGroupNotFoundFault{}}},
 					}
 				},
 			}},

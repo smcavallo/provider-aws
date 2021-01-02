@@ -20,8 +20,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/smithy-go"
 	"github.com/crossplane/crossplane-runtime/pkg/test"
 	"github.com/google/go-cmp/cmp"
 
@@ -136,7 +136,7 @@ func TestSSEObserve(t *testing.T) {
 				cl: NewSSEConfigurationClient(fake.MockBucketClient{
 					MockGetBucketEncryptionRequest: func(input *s3.GetBucketEncryptionInput) s3.GetBucketEncryptionRequest {
 						return s3.GetBucketEncryptionRequest{
-							Request: s3Testing.CreateRequest(awserr.New(clients3.SSEErrCode, "", nil), &s3.GetBucketEncryptionOutput{}),
+							Request: s3Testing.CreateRequest(smithy.GenericAPIError{Code: clients3.SSEErrCode}, &s3.GetBucketEncryptionOutput{}),
 						}
 					},
 				}),

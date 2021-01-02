@@ -22,8 +22,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
+	awsiamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -372,7 +372,7 @@ func TestDelete(t *testing.T) {
 				iam: &fake.MockAccessClient{
 					MockDeleteAccessKeyRequest: func(input *awsiam.DeleteAccessKeyInput) awsiam.DeleteAccessKeyRequest {
 						return awsiam.DeleteAccessKeyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awserr.New(awsiam.ErrCodeNoSuchEntityException, "", nil)},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awsiamtypes.NoSuchEntityException{}},
 						}
 					},
 				},

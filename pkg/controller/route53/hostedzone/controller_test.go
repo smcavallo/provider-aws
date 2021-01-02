@@ -24,8 +24,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	awsroute53 "github.com/aws/aws-sdk-go-v2/service/route53"
+	awsroute53types "github.com/aws/aws-sdk-go-v2/service/route53/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -186,7 +186,7 @@ func TestObserve(t *testing.T) {
 				route53: &fake.MockHostedZoneClient{
 					MockGetHostedZoneRequest: func(input *awsroute53.GetHostedZoneInput) awsroute53.GetHostedZoneRequest {
 						return awsroute53.GetHostedZoneRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awserr.New(awsroute53.ErrCodeNoSuchHostedZone, "", nil), Retryer: aws.NoOpRetryer{}},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awsroute53types.NoSuchHostedZone{}, Retryer: aws.NoOpRetryer{}},
 						}
 					},
 				},
@@ -444,7 +444,7 @@ func TestDelete(t *testing.T) {
 				route53: &fake.MockHostedZoneClient{
 					MockDeleteHostedZoneRequest: func(input *awsroute53.DeleteHostedZoneInput) awsroute53.DeleteHostedZoneRequest {
 						return awsroute53.DeleteHostedZoneRequest{
-							Request: &aws.Request{Retryer: aws.NoOpRetryer{}, HTTPRequest: &http.Request{}, Error: awserr.New(awsroute53.ErrCodeNoSuchHostedZone, "", nil)},
+							Request: &aws.Request{Retryer: aws.NoOpRetryer{}, HTTPRequest: &http.Request{}, Error: awsroute53types.NoSuchHostedZone{}},
 						}
 					},
 				},

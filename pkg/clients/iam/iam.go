@@ -6,9 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
-	"github.com/aws/aws-sdk-go-v2/service/iam/iamiface"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 
@@ -33,7 +32,7 @@ type Client interface {
 
 type iamClient struct {
 	accountID *string
-	iam       iamiface.ClientAPI
+	iam       iam.Client
 }
 
 // NewClient creates new AWS Client with provided AWS Configurations/Credentials
@@ -223,7 +222,7 @@ func (c *iamClient) attachPolicyToUser(policyName string, username string) error
 }
 
 func isErrorAlreadyExists(err error) bool {
-	if iamErr, ok := err.(awserr.Error); ok && iamErr.Code() == iam.ErrCodeEntityAlreadyExistsException {
+	if iamErr, ok := err.(types.EntityAlreadyExistsException); ok {
 		return true
 	}
 	return false
@@ -231,7 +230,7 @@ func isErrorAlreadyExists(err error) bool {
 
 // IsErrorNotFound returns true if the error code indicates that the item was not found
 func IsErrorNotFound(err error) bool {
-	if iamErr, ok := err.(awserr.Error); ok && iamErr.Code() == iam.ErrCodeNoSuchEntityException {
+	if iamErr, ok := err.(types.NoSuchEntityException); ok {
 		return true
 	}
 	return false

@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	awsgo "github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/smithy-go"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
@@ -44,8 +44,8 @@ func NewSecurityGroupClient(cfg awsgo.Config) SecurityGroupClient {
 
 // IsSecurityGroupNotFoundErr returns true if the error is because the item doesn't exist
 func IsSecurityGroupNotFoundErr(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == InvalidGroupNotFound {
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == InvalidGroupNotFound {
 			return true
 		}
 	}
@@ -54,8 +54,8 @@ func IsSecurityGroupNotFoundErr(err error) bool {
 
 // IsRuleAlreadyExistsErr returns true if the error is because the rule already exists.
 func IsRuleAlreadyExistsErr(err error) bool {
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == InvalidPermissionDuplicate {
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == InvalidPermissionDuplicate {
 			return true
 		}
 	}

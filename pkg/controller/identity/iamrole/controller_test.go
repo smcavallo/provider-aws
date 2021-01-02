@@ -22,8 +22,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
+	awsiamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 
@@ -164,7 +164,7 @@ func TestObserve(t *testing.T) {
 				iam: &fake.MockRoleClient{
 					MockGetRoleRequest: func(input *awsiam.GetRoleInput) awsiam.GetRoleRequest {
 						return awsiam.GetRoleRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awserr.New(awsiam.ErrCodeNoSuchEntityException, "", nil)},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awsiamtypes.NoSuchEntityException{}},
 						}
 					},
 				},
@@ -439,7 +439,7 @@ func TestDelete(t *testing.T) {
 				iam: &fake.MockRoleClient{
 					MockDeleteRoleRequest: func(input *awsiam.DeleteRoleInput) awsiam.DeleteRoleRequest {
 						return awsiam.DeleteRoleRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awserr.New(awsiam.ErrCodeNoSuchEntityException, "", nil)},
+							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: awsiamtypes.NoSuchEntityException{}},
 						}
 					},
 				},

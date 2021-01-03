@@ -40,7 +40,7 @@ type CertificateAuthorityParameters struct {
 
 	// The number of days to make a CA restorable after it has been deleted
 	// +optional
-	PermanentDeletionTimeInDays *int64 `json:"permanentDeletionTimeInDays,omitempty"`
+	PermanentDeletionTimeInDays *int32 `json:"permanentDeletionTimeInDays,omitempty"`
 
 	// Status of the certificate authority.
 	// This value cannot be configured at creation, but can be updated to set a
@@ -79,7 +79,7 @@ type RevocationConfiguration struct {
 
 	// Number of days until a certificate expires
 	// +optional
-	ExpirationInDays *int64 `json:"expirationInDays,omitempty"`
+	ExpirationInDays *int32 `json:"expirationInDays,omitempty"`
 }
 
 // CertificateAuthorityConfiguration is

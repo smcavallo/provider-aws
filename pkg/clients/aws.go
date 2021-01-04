@@ -419,6 +419,21 @@ func Int64(v int, o ...FieldOption) *int64 {
 	return aws.Int64(int64(v))
 }
 
+// Int32 converts the supplied int for use with the AWS Go SDK.
+func Int32(v int, o ...FieldOption) *int32 {
+	for _, fo := range o {
+		if fo == FieldRequired && v == 0 {
+			return aws.Int32(int32(v))
+		}
+	}
+
+	if v == 0 {
+		return nil
+	}
+
+	return aws.Int32(int32(v))
+}
+
 // Int64Address returns the given *int in the form of *int64.
 func Int64Address(i *int) *int64 {
 	if i == nil {
@@ -427,9 +442,27 @@ func Int64Address(i *int) *int64 {
 	return aws.Int64(int64(*i))
 }
 
+// Int32Address returns the given *int in the form of *int32.
+func Int32Address(i *int) *int32 {
+	if i == nil {
+		return nil
+	}
+	return aws.Int32(int32(*i))
+}
+
 // IntAddress converts the supplied int64 pointer to an int pointer, returning nil if
 // the pointer is nil.
 func IntAddress(i *int64) *int {
+	if i == nil {
+		return nil
+	}
+	r := int(*i)
+	return &r
+}
+
+// IntFrom32Address converts the supplied int32 pointer to an int pointer, returning nil if
+// the pointer is nil.
+func IntFrom32Address(i *int32) *int {
 	if i == nil {
 		return nil
 	}
@@ -448,6 +481,28 @@ func LateInitializeIntPtr(in *int, from *int64) *int {
 		return &i
 	}
 	return nil
+}
+
+// LateInitializeInt32Ptr returns in if it's non-nil, otherwise returns from
+// which is the backup for the cases in is nil.
+func LateInitializeIntFrom32Ptr(in *int, from *int32) *int {
+	if in != nil {
+		return in
+	}
+	if from != nil {
+		i := int(*from)
+		return &i
+	}
+	return nil
+}
+
+// LateInitializeInt32Ptr returns in if it's non-nil, otherwise returns from
+// which is the backup for the cases in is nil.
+func LateInitializeInt32Ptr(in *int32, from *int32) *int32 {
+	if in != nil {
+		return in
+	}
+	return from
 }
 
 // LateInitializeInt64Ptr returns in if it's non-nil, otherwise returns from

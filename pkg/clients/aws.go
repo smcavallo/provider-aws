@@ -489,7 +489,7 @@ func LateInitializeIntFrom32Ptr(in *int, from *int32) *int {
 	if in != nil {
 		return in
 	}
-	if from != nil {
+	if from != nil && *from != 0 {
 		i := int(*from)
 		return &i
 	}
@@ -537,7 +537,7 @@ func BoolValue(v *bool) bool {
 // LateInitializeBoolPtr returns in if it's non-nil, otherwise returns from
 // which is the backup for the cases in is nil.
 func LateInitializeBoolPtr(in *bool, from *bool) *bool {
-	if in != nil {
+	if in != nil && !*from {
 		return in
 	}
 	return from

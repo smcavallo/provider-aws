@@ -1,6 +1,7 @@
 package ecr
 
 import (
+	"context"
 	"encoding/json"
 	"sort"
 	"strings"
@@ -28,14 +29,14 @@ const (
 
 // RepositoryClient is the external client used for ECR Custom Resource
 type RepositoryClient interface {
-	CreateRepository(input *ecr.CreateRepositoryInput) (*ecr.CreateRepositoryOutput, error)
-	DescribeRepositories(input *ecr.DescribeRepositoriesInput) (*ecr.DescribeRepositoriesOutput, error)
-	DeleteRepository(input *ecr.DeleteRepositoryInput) (*ecr.DeleteRepositoryOutput, error)
-	ListTagsForResource(*ecr.ListTagsForResourceInput) (*ecr.ListTagsForResourceOutput, error)
-	TagResource(*ecr.TagResourceInput) (*ecr.TagResourceOutput, error)
-	PutImageTagMutability(*ecr.PutImageTagMutabilityInput) (*ecr.PutImageTagMutabilityOutput, error)
-	PutImageScanningConfiguration(*ecr.PutImageScanningConfigurationInput) (*ecr.PutImageScanningConfigurationOutput, error)
-	UntagResource(*ecr.UntagResourceInput) (*ecr.UntagResourceOutput, error)
+	CreateRepository(ctx context.Context, input *ecr.CreateRepositoryInput, opts ...func(*ecr.Options)) (*ecr.CreateRepositoryOutput, error)
+	DescribeRepositories(ctx context.Context, input *ecr.DescribeRepositoriesInput, opts ...func(*ecr.Options)) (*ecr.DescribeRepositoriesOutput, error)
+	DeleteRepository(ctx context.Context, input *ecr.DeleteRepositoryInput, opts ...func(*ecr.Options)) (*ecr.DeleteRepositoryOutput, error)
+	ListTagsForResource(ctx context.Context, input *ecr.ListTagsForResourceInput, opts ...func(*ecr.Options)) (*ecr.ListTagsForResourceOutput, error)
+	TagResource(ctx context.Context, input *ecr.TagResourceInput, opts ...func(*ecr.Options)) (*ecr.TagResourceOutput, error)
+	PutImageTagMutability(ctx context.Context, input *ecr.PutImageTagMutabilityInput, opts ...func(*ecr.Options)) (*ecr.PutImageTagMutabilityOutput, error)
+	PutImageScanningConfiguration(ctx context.Context, input *ecr.PutImageScanningConfigurationInput, opts ...func(*ecr.Options)) (*ecr.PutImageScanningConfigurationOutput, error)
+	UntagResource(ctx context.Context, input *ecr.UntagResourceInput, opts ...func(*ecr.Options)) (*ecr.UntagResourceOutput, error)
 }
 
 // GenerateRepositoryObservation is used to produce v1alpha1.RepositoryObservation from

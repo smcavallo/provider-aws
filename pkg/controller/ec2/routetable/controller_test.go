@@ -23,6 +23,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
+	awsec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -102,14 +103,12 @@ func TestObserve(t *testing.T) {
 		"SuccessfulAvailable": {
 			args: args{
 				rt: &fake.MockRouteTableClient{
-					MockDescribe: func(input *awsec2.DescribeRouteTablesInput) awsec2.DescribeRouteTablesRequest {
-						return awsec2.DescribeRouteTablesRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsec2.DescribeRouteTablesOutput{
-								RouteTables: []awsec2.RouteTable{{
-									VpcId: aws.String(vpcID),
-								}},
+					MockDescribe: func(ctx context.Context, input *awsec2.DescribeRouteTablesInput, opts []func(*awsec2.Options)) (*awsec2.DescribeRouteTablesOutput, error) {
+						return &awsec2.DescribeRouteTablesOutput{
+							RouteTables: []awsec2types.RouteTable{{
+								VpcId: aws.String(vpcID),
 							}},
-						}
+						}, nil
 					},
 				},
 				cr: rt(withSpec(v1beta1.RouteTableParameters{
@@ -129,12 +128,10 @@ func TestObserve(t *testing.T) {
 		"MultipleTables": {
 			args: args{
 				rt: &fake.MockRouteTableClient{
-					MockDescribe: func(input *awsec2.DescribeRouteTablesInput) awsec2.DescribeRouteTablesRequest {
-						return awsec2.DescribeRouteTablesRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsec2.DescribeRouteTablesOutput{
-								RouteTables: []awsec2.RouteTable{{}, {}},
-							}},
-						}
+					MockDescribe: func(ctx context.Context, input *awsec2.DescribeRouteTablesInput, opts []func(*awsec2.Options)) (*awsec2.DescribeRouteTablesOutput, error) {
+						return &awsec2.DescribeRouteTablesOutput{
+							RouteTables: []awsec2types.RouteTable{{}, {}},
+						}, nil
 					},
 				},
 				cr: rt(withExternalName(rtID)),
@@ -147,10 +144,8 @@ func TestObserve(t *testing.T) {
 		"DescribeFail": {
 			args: args{
 				rt: &fake.MockRouteTableClient{
-					MockDescribe: func(input *awsec2.DescribeRouteTablesInput) awsec2.DescribeRouteTablesRequest {
-						return awsec2.DescribeRouteTablesRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: errBoom},
-						}
+					MockDescribe: func(ctx context.Context, input *awsec2.DescribeRouteTablesInput, opts []func(*awsec2.Options)) (*awsec2.DescribeRouteTablesOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: rt(withExternalName(rtID)),
@@ -198,12 +193,10 @@ func TestCreate(t *testing.T) {
 					MockStatusUpdate: test.NewMockClient().MockStatusUpdate,
 				},
 				rt: &fake.MockRouteTableClient{
-					MockCreate: func(input *awsec2.CreateRouteTableInput) awsec2.CreateRouteTableRequest {
-						return awsec2.CreateRouteTableRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsec2.CreateRouteTableOutput{
-								RouteTable: &awsec2.RouteTable{RouteTableId: aws.String(rtID)},
-							}},
-						}
+					MockCreate: func(ctx context.Context, input *awsec2.CreateRouteTableInput, opts []func(*awsec2.Options)) (*awsec2.CreateRouteTableOutput, error) {
+						return &awsec2.CreateRouteTableOutput{
+							RouteTable: &awsec2types.RouteTable{RouteTableId: aws.String(rtID)},
+						}, nil
 					},
 				},
 				cr: rt(withSpec(v1beta1.RouteTableParameters{
@@ -224,10 +217,8 @@ func TestCreate(t *testing.T) {
 					MockStatusUpdate: test.NewMockClient().MockStatusUpdate,
 				},
 				rt: &fake.MockRouteTableClient{
-					MockCreate: func(input *awsec2.CreateRouteTableInput) awsec2.CreateRouteTableRequest {
-						return awsec2.CreateRouteTableRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: errBoom},
-						}
+					MockCreate: func(ctx context.Context, input *awsec2.CreateRouteTableInput, opts []func(*awsec2.Options)) (*awsec2.CreateRouteTableOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: rt(withSpec(v1beta1.RouteTableParameters{
@@ -275,27 +266,19 @@ func TestUpdate(t *testing.T) {
 		"Successful": {
 			args: args{
 				rt: &fake.MockRouteTableClient{
-					MockDescribe: func(input *awsec2.DescribeRouteTablesInput) awsec2.DescribeRouteTablesRequest {
-						return awsec2.DescribeRouteTablesRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsec2.DescribeRouteTablesOutput{
-								RouteTables: []awsec2.RouteTable{{}},
-							}},
-						}
+					MockDescribe: func(ctx context.Context, input *awsec2.DescribeRouteTablesInput, opts []func(*awsec2.Options)) (*awsec2.DescribeRouteTablesOutput, error) {
+						return &awsec2.DescribeRouteTablesOutput{
+							RouteTables: []awsec2types.RouteTable{{}},
+						}, nil
 					},
-					MockAssociate: func(input *awsec2.AssociateRouteTableInput) awsec2.AssociateRouteTableRequest {
-						return awsec2.AssociateRouteTableRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsec2.AssociateRouteTableOutput{}},
-						}
+					MockAssociate: func(ctx context.Context, input *awsec2.AssociateRouteTableInput, opts []func(*awsec2.Options)) (*awsec2.AssociateRouteTableOutput, error) {
+						return &awsec2.AssociateRouteTableOutput{}, nil
 					},
-					MockDeleteRoute: func(input *awsec2.DeleteRouteInput) awsec2.DeleteRouteRequest {
-						return awsec2.DeleteRouteRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsec2.DeleteRouteOutput{}},
-						}
+					MockDeleteRoute: func(ctx context.Context, input *awsec2.DeleteRouteInput, opts []func(*awsec2.Options)) (*awsec2.DeleteRouteOutput, error) {
+						return &awsec2.DeleteRouteOutput{}, nil
 					},
-					MockCreateRoute: func(input *awsec2.CreateRouteInput) awsec2.CreateRouteRequest {
-						return awsec2.CreateRouteRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsec2.CreateRouteOutput{}},
-						}
+					MockCreateRoute: func(ctx context.Context, input *awsec2.CreateRouteInput, opts []func(*awsec2.Options)) (*awsec2.CreateRouteOutput, error) {
+						return &awsec2.CreateRouteOutput{}, nil
 					},
 				},
 				cr: rt(withSpec(v1beta1.RouteTableParameters{
@@ -724,17 +707,13 @@ func TestUpdate(t *testing.T) {
 		"CreateRouteFail": {
 			args: args{
 				rt: &fake.MockRouteTableClient{
-					MockDescribe: func(input *awsec2.DescribeRouteTablesInput) awsec2.DescribeRouteTablesRequest {
-						return awsec2.DescribeRouteTablesRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsec2.DescribeRouteTablesOutput{
-								RouteTables: []awsec2.RouteTable{{}},
-							}},
-						}
+					MockDescribe: func(ctx context.Context, input *awsec2.DescribeRouteTablesInput, opts []func(*awsec2.Options)) (*awsec2.DescribeRouteTablesOutput, error) {
+						return &awsec2.DescribeRouteTablesOutput{
+							RouteTables: []awsec2types.RouteTable{{}},
+						}, nil
 					},
-					MockCreateRoute: func(input *awsec2.CreateRouteInput) awsec2.CreateRouteRequest {
-						return awsec2.CreateRouteRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: errBoom},
-						}
+					MockCreateRoute: func(ctx context.Context, input *awsec2.CreateRouteInput, opts []func(*awsec2.Options)) (*awsec2.CreateRouteOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: rt(withSpec(v1beta1.RouteTableParameters{
@@ -861,17 +840,13 @@ func TestDelete(t *testing.T) {
 		"Successful": {
 			args: args{
 				rt: &fake.MockRouteTableClient{
-					MockDescribe: func(input *awsec2.DescribeRouteTablesInput) awsec2.DescribeRouteTablesRequest {
-						return awsec2.DescribeRouteTablesRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsec2.DescribeRouteTablesOutput{
-								RouteTables: []awsec2.RouteTable{{}},
-							}},
-						}
+					MockDescribe: func(ctx context.Context, input *awsec2.DescribeRouteTablesInput, opts []func(*awsec2.Options)) (*awsec2.DescribeRouteTablesOutput, error) {
+						return &awsec2.DescribeRouteTablesOutput{
+							RouteTables: []awsec2types.RouteTable{{}},
+						}, nil
 					},
-					MockDelete: func(input *awsec2.DeleteRouteTableInput) awsec2.DeleteRouteTableRequest {
-						return awsec2.DeleteRouteTableRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsec2.DeleteRouteTableOutput{}},
-						}
+					MockDelete: func(ctx context.Context, input *awsec2.DeleteRouteTableInput, opts []func(*awsec2.Options)) (*awsec2.DeleteRouteTableOutput, error) {
+						return &awsec2.DeleteRouteTableOutput{}, nil
 					},
 				},
 				cr: rt(withStatus(v1beta1.RouteTableObservation{
@@ -916,17 +891,13 @@ func TestDelete(t *testing.T) {
 		"DeleteFail": {
 			args: args{
 				rt: &fake.MockRouteTableClient{
-					MockDescribe: func(input *awsec2.DescribeRouteTablesInput) awsec2.DescribeRouteTablesRequest {
-						return awsec2.DescribeRouteTablesRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsec2.DescribeRouteTablesOutput{
-								RouteTables: []awsec2.RouteTable{{}},
-							}},
-						}
+					MockDescribe: func(ctx context.Context, input *awsec2.DescribeRouteTablesInput, opts []func(*awsec2.Options)) (*awsec2.DescribeRouteTablesOutput, error) {
+						return &awsec2.DescribeRouteTablesOutput{
+							RouteTables: []awsec2types.RouteTable{{}},
+						}, nil
 					},
-					MockDelete: func(input *awsec2.DeleteRouteTableInput) awsec2.DeleteRouteTableRequest {
-						return awsec2.DeleteRouteTableRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: errBoom},
-						}
+					MockDelete: func(ctx context.Context, input *awsec2.DeleteRouteTableInput, opts []func(*awsec2.Options)) (*awsec2.DeleteRouteTableOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: rt(withStatus(v1beta1.RouteTableObservation{

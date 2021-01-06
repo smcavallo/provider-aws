@@ -1,11 +1,13 @@
 package ec2
 
 import (
+	"context"
 	"encoding/json"
 	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -32,20 +34,20 @@ const (
 
 // RouteTableClient is the external client used for RouteTable Custom Resource
 type RouteTableClient interface {
-	CreateRouteTableRequest(*ec2.CreateRouteTableInput) ec2.CreateRouteTableRequest
-	DeleteRouteTableRequest(*ec2.DeleteRouteTableInput) ec2.DeleteRouteTableRequest
-	DescribeRouteTablesRequest(*ec2.DescribeRouteTablesInput) ec2.DescribeRouteTablesRequest
-	CreateRouteRequest(*ec2.CreateRouteInput) ec2.CreateRouteRequest
-	DeleteRouteRequest(*ec2.DeleteRouteInput) ec2.DeleteRouteRequest
-	AssociateRouteTableRequest(*ec2.AssociateRouteTableInput) ec2.AssociateRouteTableRequest
-	DisassociateRouteTableRequest(*ec2.DisassociateRouteTableInput) ec2.DisassociateRouteTableRequest
-	CreateTagsRequest(*ec2.CreateTagsInput) ec2.CreateTagsRequest
-	DeleteTagsRequest(*ec2.DeleteTagsInput) ec2.DeleteTagsRequest
+	CreateRouteTable(ctx context.Context, input *ec2.CreateRouteTableInput, opts ...func(*ec2.Options)) (*ec2.CreateRouteTableOutput, error)
+	DeleteRouteTable(ctx context.Context, input *ec2.DeleteRouteTableInput, opts ...func(*ec2.Options)) (*ec2.DeleteRouteTableOutput, error)
+	DescribeRouteTables(ctx context.Context, input *ec2.DescribeRouteTablesInput, opts ...func(*ec2.Options)) (*ec2.DescribeRouteTablesOutput, error)
+	CreateRoute(ctx context.Context, input *ec2.CreateRouteInput, opts ...func(*ec2.Options)) (*ec2.CreateRouteOutput, error)
+	DeleteRoute(ctx context.Context, input *ec2.DeleteRouteInput, opts ...func(*ec2.Options)) (*ec2.DeleteRouteOutput, error)
+	AssociateRouteTable(ctx context.Context, input *ec2.AssociateRouteTableInput, opts ...func(*ec2.Options)) (*ec2.AssociateRouteTableOutput, error)
+	DisassociateRouteTable(ctx context.Context, input *ec2.DisassociateRouteTableInput, opts ...func(*ec2.Options)) (*ec2.DisassociateRouteTableOutput, error)
+	CreateTags(ctx context.Context, input *ec2.CreateTagsInput, opts ...func(*ec2.Options)) (*ec2.CreateTagsOutput, error)
+	DeleteTags(ctx context.Context, input *ec2.DeleteTagsInput, opts ...func(*ec2.Options)) (*ec2.DeleteTagsOutput, error)
 }
 
 // NewRouteTableClient returns a new client using AWS credentials as JSON encoded data.
 func NewRouteTableClient(cfg aws.Config) RouteTableClient {
-	return ec2.New(cfg)
+	return ec2.NewFromConfig(cfg)
 }
 
 // IsRouteTableNotFoundErr returns true if the error is because the route table doesn't exist
@@ -80,10 +82,10 @@ func IsAssociationIDNotFoundErr(err error) bool {
 
 // GenerateRTObservation is used to produce v1beta1.RouteTableExternalStatus from
 // ec2.RouteTable.
-func GenerateRTObservation(rt ec2.RouteTable) v1beta1.RouteTableObservation {
+func GenerateRTObservation(rt ec2types.RouteTable) v1beta1.RouteTableObservation {
 	o := v1beta1.RouteTableObservation{
-		OwnerID:      aws.StringValue(rt.OwnerId),
-		RouteTableID: aws.StringValue(rt.RouteTableId),
+		OwnerID:      aws.ToString(rt.OwnerId),
+		RouteTableID: aws.ToString(rt.RouteTableId),
 	}
 
 	if len(rt.Routes) > 0 {
@@ -91,15 +93,15 @@ func GenerateRTObservation(rt ec2.RouteTable) v1beta1.RouteTableObservation {
 		for i, rt := range rt.Routes {
 			o.Routes[i] = v1beta1.RouteState{
 				State:                    string(rt.State),
-				DestinationCIDRBlock:     aws.StringValue(rt.DestinationCidrBlock),
-				DestinationIPV6CIDRBlock: aws.StringValue(rt.DestinationIpv6CidrBlock),
-				GatewayID:                aws.StringValue(rt.GatewayId),
-				InstanceID:               aws.StringValue(rt.InstanceId),
-				LocalGatewayID:           aws.StringValue(rt.LocalGatewayId),
-				NatGatewayID:             aws.StringValue(rt.NatGatewayId),
-				NetworkInterfaceID:       aws.StringValue(rt.NetworkInterfaceId),
-				TransitGatewayID:         aws.StringValue(rt.TransitGatewayId),
-				VpcPeeringConnectionID:   aws.StringValue(rt.VpcPeeringConnectionId),
+				DestinationCIDRBlock:     aws.ToString(rt.DestinationCidrBlock),
+				DestinationIPV6CIDRBlock: aws.ToString(rt.DestinationIpv6CidrBlock),
+				GatewayID:                aws.ToString(rt.GatewayId),
+				InstanceID:               aws.ToString(rt.InstanceId),
+				LocalGatewayID:           aws.ToString(rt.LocalGatewayId),
+				NatGatewayID:             aws.ToString(rt.NatGatewayId),
+				NetworkInterfaceID:       aws.ToString(rt.NetworkInterfaceId),
+				TransitGatewayID:         aws.ToString(rt.TransitGatewayId),
+				VpcPeeringConnectionID:   aws.ToString(rt.VpcPeeringConnectionId),
 			}
 		}
 	}
@@ -108,10 +110,10 @@ func GenerateRTObservation(rt ec2.RouteTable) v1beta1.RouteTableObservation {
 		o.Associations = make([]v1beta1.AssociationState, len(rt.Associations))
 		for i, asc := range rt.Associations {
 			o.Associations[i] = v1beta1.AssociationState{
-				Main:          aws.BoolValue(asc.Main),
-				AssociationID: aws.StringValue(asc.RouteTableAssociationId),
-				State:         asc.AssociationState.String(),
-				SubnetID:      aws.StringValue(asc.SubnetId),
+				Main:          asc.Main,
+				AssociationID: aws.ToString(asc.RouteTableAssociationId),
+				State:         string(asc.AssociationState.State),
+				SubnetID:      aws.ToString(asc.SubnetId),
 			}
 		}
 	}
@@ -121,7 +123,7 @@ func GenerateRTObservation(rt ec2.RouteTable) v1beta1.RouteTableObservation {
 
 // LateInitializeRT fills the empty fields in *v1beta1.RouteTableParameters with
 // the values seen in ec2.RouteTable.
-func LateInitializeRT(in *v1beta1.RouteTableParameters, rt *ec2.RouteTable) { // nolint:gocyclo
+func LateInitializeRT(in *v1beta1.RouteTableParameters, rt *ec2types.RouteTable) { // nolint:gocyclo
 	if rt == nil {
 		return
 	}
@@ -198,7 +200,7 @@ func CreateRTPatch(in ec2.RouteTable, target v1beta1.RouteTableParameters) (*v1b
 }
 
 // IsRtUpToDate checks whether there is a change in any of the modifiable fields.
-func IsRtUpToDate(p v1beta1.RouteTableParameters, rt ec2.RouteTable) (bool, error) {
+func IsRtUpToDate(p v1beta1.RouteTableParameters, rt ec2types.RouteTable) (bool, error) {
 	patch, err := CreateRTPatch(rt, p)
 	if err != nil {
 		return false, err

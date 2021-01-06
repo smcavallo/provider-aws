@@ -75,7 +75,7 @@ func (in *IPPermission) DeepCopyInto(out *IPPermission) {
 	*out = *in
 	if in.FromPort != nil {
 		in, out := &in.FromPort, &out.FromPort
-		*out = new(int64)
+		*out = new(int32)
 		**out = **in
 	}
 	if in.IPRanges != nil {
@@ -101,7 +101,7 @@ func (in *IPPermission) DeepCopyInto(out *IPPermission) {
 	}
 	if in.ToPort != nil {
 		in, out := &in.ToPort, &out.ToPort
-		*out = new(int64)
+		*out = new(int32)
 		**out = **in
 	}
 	if in.UserIDGroupPairs != nil {

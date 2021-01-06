@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/crossplane/provider-aws/apis/ec2/v1beta1"
@@ -23,8 +23,8 @@ var (
 func specIPPermsision(port int) []v1beta1.IPPermission {
 	return []v1beta1.IPPermission{
 		{
-			FromPort:   aws.Int64(int64(port)),
-			ToPort:     aws.Int64(int64(port)),
+			FromPort:   aws.Int32(int32(port)),
+			ToPort:     aws.Int32(int32(port)),
 			IPProtocol: "tcp",
 			IPRanges: []v1beta1.IPRange{
 				{
@@ -35,13 +35,13 @@ func specIPPermsision(port int) []v1beta1.IPPermission {
 	}
 }
 
-func sgIPPermission(port int) []ec2.IpPermission {
-	return []ec2.IpPermission{
+func sgIPPermission(port int) []ec2types.IpPermission {
+	return []ec2types.IpPermission{
 		{
-			FromPort:   aws.Int64(int64(port)),
-			ToPort:     aws.Int64(int64(port)),
+			FromPort:   int32(port),
+			ToPort:     int32(port),
 			IpProtocol: aws.String(sgProtocol),
-			IpRanges: []ec2.IpRange{
+			IpRanges: []ec2types.IpRange{
 				{
 					CidrIp: aws.String(sgCidr),
 				},
@@ -52,7 +52,7 @@ func sgIPPermission(port int) []ec2.IpPermission {
 
 func TestIsSGUpToDate(t *testing.T) {
 	type args struct {
-		sg ec2.SecurityGroup
+		sg ec2types.SecurityGroup
 		p  v1beta1.SecurityGroupParameters
 	}
 
@@ -62,7 +62,7 @@ func TestIsSGUpToDate(t *testing.T) {
 	}{
 		"SameFields": {
 			args: args{
-				sg: ec2.SecurityGroup{
+				sg: ec2types.SecurityGroup{
 					Description:   aws.String(sgDesc),
 					GroupName:     aws.String(sgName),
 					VpcId:         aws.String(sgVpc),
@@ -79,7 +79,7 @@ func TestIsSGUpToDate(t *testing.T) {
 		},
 		"DifferentFields": {
 			args: args{
-				sg: ec2.SecurityGroup{
+				sg: ec2types.SecurityGroup{
 					Description:   aws.String(sgDesc),
 					GroupName:     aws.String(sgName),
 					VpcId:         aws.String(sgVpc),
@@ -108,11 +108,11 @@ func TestIsSGUpToDate(t *testing.T) {
 
 func TestGenerateSGObservation(t *testing.T) {
 	cases := map[string]struct {
-		in  ec2.SecurityGroup
+		in  ec2types.SecurityGroup
 		out v1beta1.SecurityGroupObservation
 	}{
 		"AllFilled": {
-			in: ec2.SecurityGroup{
+			in: ec2types.SecurityGroup{
 				OwnerId: aws.String(sgOwner),
 				GroupId: aws.String(sgID),
 			},
@@ -122,7 +122,7 @@ func TestGenerateSGObservation(t *testing.T) {
 			},
 		},
 		"NoIpCount": {
-			in: ec2.SecurityGroup{
+			in: ec2types.SecurityGroup{
 				OwnerId: aws.String(sgOwner),
 			},
 			out: v1beta1.SecurityGroupObservation{
@@ -143,7 +143,7 @@ func TestGenerateSGObservation(t *testing.T) {
 
 func TestCreateSGPatch(t *testing.T) {
 	type args struct {
-		sg ec2.SecurityGroup
+		sg ec2types.SecurityGroup
 		p  *v1beta1.SecurityGroupParameters
 	}
 
@@ -157,7 +157,7 @@ func TestCreateSGPatch(t *testing.T) {
 	}{
 		"SameFields": {
 			args: args{
-				sg: ec2.SecurityGroup{
+				sg: ec2types.SecurityGroup{
 					Description:         aws.String(sgDesc),
 					GroupName:           aws.String(sgName),
 					IpPermissions:       sgIPPermission(80),
@@ -178,7 +178,7 @@ func TestCreateSGPatch(t *testing.T) {
 		},
 		"DifferentFields": {
 			args: args{
-				sg: ec2.SecurityGroup{
+				sg: ec2types.SecurityGroup{
 					Description:         aws.String(sgDesc),
 					GroupName:           aws.String(sgName),
 					IpPermissions:       sgIPPermission(80),

@@ -1,11 +1,12 @@
 package ec2
 
 import (
+	"context"
 	"sort"
-	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go"
 
 	"github.com/crossplane/provider-aws/apis/ec2/v1alpha1"
@@ -15,22 +16,22 @@ import (
 const (
 	// ElasticIPAddressNotFound address not found
 	ElasticIPAddressNotFound = "InvalidAddress.NotFound"
-	// ElasticIPAllocationNotFound addreess not found by allocation
+	// ElasticIPAllocationNotFound address not found by allocation
 	ElasticIPAllocationNotFound = "InvalidAllocationID.NotFound"
 )
 
 // ElasticIPClient is the external client used for ElasticIP Custom Resource
 type ElasticIPClient interface {
-	AllocateAddressRequest(input *ec2.AllocateAddressInput) ec2.AllocateAddressRequest
-	DescribeAddressesRequest(input *ec2.DescribeAddressesInput) ec2.DescribeAddressesRequest
-	ReleaseAddressRequest(input *ec2.ReleaseAddressInput) ec2.ReleaseAddressRequest
-	CreateTagsRequest(*ec2.CreateTagsInput) ec2.CreateTagsRequest
+	AllocateAddress(ctx context.Context, input *ec2.AllocateAddressInput, opts ...func(*ec2.Options)) (*ec2.AllocateAddressOutput, error)
+	DescribeAddresses(ctx context.Context, input *ec2.DescribeAddressesInput, opts ...func(*ec2.Options)) (*ec2.DescribeAddressesOutput, error)
+	ReleaseAddress(ctx context.Context, input *ec2.ReleaseAddressInput, opts ...func(*ec2.Options)) (*ec2.ReleaseAddressOutput, error)
+	CreateTags(ctx context.Context, input *ec2.CreateTagsInput, opts ...func(*ec2.Options)) (*ec2.CreateTagsOutput, error)
 }
 
 // IsAddressNotFoundErr returns true if the error is because the address doesn't exist
 func IsAddressNotFoundErr(err error) bool {
 	if awsErr, ok := err.(smithy.APIError); ok {
-		if apiErr.ErrorCode() == ElasticIPAddressNotFound || apiErr.ErrorCode() == ElasticIPAllocationNotFound {
+		if awsErr.ErrorCode() == ElasticIPAddressNotFound || awsErr.ErrorCode() == ElasticIPAllocationNotFound {
 			return true
 		}
 	}
@@ -39,26 +40,26 @@ func IsAddressNotFoundErr(err error) bool {
 
 // GenerateElasticIPObservation is used to produce v1alpha1.ElasticIPObservation from
 // ec2.Subnet
-func GenerateElasticIPObservation(address ec2.Address) v1alpha1.ElasticIPObservation {
+func GenerateElasticIPObservation(address ec2types.Address) v1alpha1.ElasticIPObservation {
 	o := v1alpha1.ElasticIPObservation{
-		AllocationID:            aws.StringValue(address.AllocationId),
-		AssociationID:           aws.StringValue(address.AssociationId),
-		CustomerOwnedIP:         aws.StringValue(address.CustomerOwnedIp),
-		CustomerOwnedIPv4Pool:   aws.StringValue(address.CustomerOwnedIpv4Pool),
-		InstanceID:              aws.StringValue(address.InstanceId),
-		NetworkBorderGroup:      aws.StringValue(address.NetworkBorderGroup),
-		NetworkInterfaceID:      aws.StringValue(address.NetworkInterfaceId),
-		NetworkInterfaceOwnerID: aws.StringValue(address.NetworkInterfaceOwnerId),
-		PrivateIPAddress:        aws.StringValue(address.PrivateIpAddress),
-		PublicIP:                aws.StringValue(address.PublicIp),
-		PublicIPv4Pool:          aws.StringValue(address.PublicIpv4Pool),
+		AllocationID:            aws.ToString(address.AllocationId),
+		AssociationID:           aws.ToString(address.AssociationId),
+		CustomerOwnedIP:         aws.ToString(address.CustomerOwnedIp),
+		CustomerOwnedIPv4Pool:   aws.ToString(address.CustomerOwnedIpv4Pool),
+		InstanceID:              aws.ToString(address.InstanceId),
+		NetworkBorderGroup:      aws.ToString(address.NetworkBorderGroup),
+		NetworkInterfaceID:      aws.ToString(address.NetworkInterfaceId),
+		NetworkInterfaceOwnerID: aws.ToString(address.NetworkInterfaceOwnerId),
+		PrivateIPAddress:        aws.ToString(address.PrivateIpAddress),
+		PublicIP:                aws.ToString(address.PublicIp),
+		PublicIPv4Pool:          aws.ToString(address.PublicIpv4Pool),
 	}
 	return o
 }
 
 // LateInitializeElasticIP fills the empty fields in *v1alpha1.ElasticIPParameters with
-// the values seen in ec2.Address.
-func LateInitializeElasticIP(in *v1alpha1.ElasticIPParameters, a *ec2.Address) { // nolint:gocyclo
+// the values seen in ec2types.Address.
+func LateInitializeElasticIP(in *v1alpha1.ElasticIPParameters, a *ec2types.Address) { // nolint:gocyclo
 	if a == nil {
 		return
 	}
@@ -73,13 +74,13 @@ func LateInitializeElasticIP(in *v1alpha1.ElasticIPParameters, a *ec2.Address) {
 }
 
 // IsElasticIPUpToDate checks whether there is a change in any of the modifiable fields.
-func IsElasticIPUpToDate(e v1alpha1.ElasticIPParameters, a ec2.Address) bool {
+func IsElasticIPUpToDate(e v1alpha1.ElasticIPParameters, a ec2types.Address) bool {
 	return CompareTags(e.Tags, a.Tags)
 }
 
 // IsStandardDomain checks whether it is set for standard domain
 func IsStandardDomain(e v1alpha1.ElasticIPParameters) bool {
-	return e.Domain != nil && *e.Domain == *aws.String(string(ec2.DomainTypeStandard))
+	return e.Domain != nil && *e.Domain == *aws.String(string(ec2types.DomainTypeStandard))
 }
 
 // GenerateEC2Tags generates a tag array with type that EC2 client expects.

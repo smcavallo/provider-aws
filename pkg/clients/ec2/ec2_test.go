@@ -54,7 +54,7 @@ func Test_IsInternetGatewayNotFoundErr(t *testing.T) {
 		},
 		{
 			"InternetGatewayNotFoundErr is",
-			smithy.GenericAPIError{Code: InternetGatewayIDNotFound},
+			&smithy.GenericAPIError{Code: InternetGatewayIDNotFound},
 			true,
 		},
 	}
@@ -88,7 +88,7 @@ func Test_IsRouteTableNotFoundErr(t *testing.T) {
 		},
 		{
 			"RouteTableNotFoundErr is",
-			smithy.GenericAPIError{Code: RouteTableIDNotFound},
+			&smithy.GenericAPIError{Code: RouteTableIDNotFound},
 			true,
 		},
 	}
@@ -122,7 +122,7 @@ func Test_IsRouteNotFoundErr(t *testing.T) {
 		},
 		{
 			"RouteNotFoundErr is",
-			smithy.GenericAPIError{Code: RouteNotFound},
+			&smithy.GenericAPIError{Code: RouteNotFound},
 			true,
 		},
 	}
@@ -156,7 +156,7 @@ func Test_IsAssociationIDNotFoundErr(t *testing.T) {
 		},
 		{
 			"AssociationIDNotFoundErr is",
-			smithy.GenericAPIError{Code: AssociationIDNotFound},
+			&smithy.GenericAPIError{Code: AssociationIDNotFound},
 			true,
 		},
 	}
@@ -190,7 +190,7 @@ func Test_IsSecurityGroupNotFoundErr(t *testing.T) {
 		},
 		{
 			"SecurityGroupNotFoundErr is",
-			smithy.GenericAPIError{Code: InvalidGroupNotFound},
+			&smithy.GenericAPIError{Code: InvalidGroupNotFound},
 			true,
 		},
 	}
@@ -224,7 +224,7 @@ func Test_IsSubnetNotFoundErr(t *testing.T) {
 		},
 		{
 			"SubnetNotFoundErr is",
-			smithy.GenericAPIError{Code: SubnetIDNotFound},
+			&smithy.GenericAPIError{Code: SubnetIDNotFound},
 			true,
 		},
 	}
@@ -258,7 +258,7 @@ func Test_IsVPCNotFoundErr(t *testing.T) {
 		},
 		{
 			"VPCNotFoundErr is",
-			smithy.GenericAPIError{Code: VPCIDNotFound},
+			&smithy.GenericAPIError{Code: VPCIDNotFound},
 			true,
 		},
 	}

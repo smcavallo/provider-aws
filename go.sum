@@ -100,6 +100,7 @@ github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v0.2.0/go.mod h1:Ef7
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v0.4.0/go.mod h1:fMsE4Rr6OkxQUmZxi4Amj8LS0BakLZw05Rog0jYStQM=
 github.com/aws/aws-sdk-go-v2/service/rds v0.31.0/go.mod h1:QR1y6Z2xttVeN5/Ka1qI5nNy5QNh3iMHBEx97R+EP3w=
 github.com/aws/aws-sdk-go-v2/service/redshift v0.31.0/go.mod h1:DaRL7Eo90Yv6+zjBaIxQGik12OSLVxYTSCveyQhUjSw=
+github.com/aws/aws-sdk-go-v2/service/route53 v0.31.0 h1:0qVkvLk5bfNwpV7jbWFeTNzwibf5UQox18t4OZRSGuM=
 github.com/aws/aws-sdk-go-v2/service/route53 v0.31.0/go.mod h1:pAjhJw+tl3oKqX/SzArjU2KSKZs3qLzfG39rqAxM9w8=
 github.com/aws/aws-sdk-go-v2/service/s3 v0.31.0/go.mod h1:KnvsmhsdHaJJZatMeNscBKaEmz0V5oXe1N5ZaLmGDBs=
 github.com/aws/aws-sdk-go-v2/service/sns v0.31.0/go.mod h1:z2sDp3+VSVK29ymUSY23ECKpKgUjePTDoBGDWa2s8t8=

@@ -103,6 +103,7 @@ github.com/aws/aws-sdk-go-v2/service/redshift v0.31.0/go.mod h1:DaRL7Eo90Yv6+zjB
 github.com/aws/aws-sdk-go-v2/service/route53 v0.31.0/go.mod h1:pAjhJw+tl3oKqX/SzArjU2KSKZs3qLzfG39rqAxM9w8=
 github.com/aws/aws-sdk-go-v2/service/s3 v0.31.0/go.mod h1:KnvsmhsdHaJJZatMeNscBKaEmz0V5oXe1N5ZaLmGDBs=
 github.com/aws/aws-sdk-go-v2/service/sns v0.31.0/go.mod h1:z2sDp3+VSVK29ymUSY23ECKpKgUjePTDoBGDWa2s8t8=
+github.com/aws/aws-sdk-go-v2/service/sqs v0.31.0 h1:KWDgaC5RRb8ind8+b1+EveN7ywQ+2+KgQP8UJN9ao/c=
 github.com/aws/aws-sdk-go-v2/service/sqs v0.31.0/go.mod h1:fl3rAHxyXa29C+IDaKxR2C1nxw6bKIIoPm45pKBubcs=
 github.com/aws/aws-sdk-go-v2/service/sts v0.31.0 h1:iJwlIyswoW4VM8RUmhC3397jdGa6QhMUtUf5daX+/a0=
 github.com/aws/aws-sdk-go-v2/service/sts v0.31.0/go.mod h1:gliVu4/DZsKINvBoEcMIlxMIQft/yPYQhnSLxwiWqFM=

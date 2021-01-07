@@ -17,16 +17,20 @@ limitations under the License.
 package eks
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 
 	"net"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -46,43 +50,66 @@ const (
 )
 
 // Client defines EKS Client operations
-type Client eks.Client
+type Client interface {
+	CreateCluster(ctx context.Context, input *eks.CreateClusterInput, opts ...func(*eks.Options)) (*eks.CreateClusterOutput, error)
+	DescribeCluster(ctx context.Context, input *eks.DescribeClusterInput, opts ...func(*eks.Options)) (*eks.DescribeClusterOutput, error)
+	UpdateClusterConfig(ctx context.Context, input *eks.UpdateClusterConfigInput, opts ...func(*eks.Options)) (*eks.UpdateClusterConfigOutput, error)
+	DeleteCluster(ctx context.Context, input *eks.DeleteClusterInput, opts ...func(*eks.Options)) (*eks.DeleteClusterOutput, error)
+	TagResource(ctx context.Context, input *eks.TagResourceInput, opts ...func(*eks.Options)) (*eks.TagResourceOutput, error)
+	UntagResource(ctx context.Context, input *eks.UntagResourceInput, opts ...func(*eks.Options)) (*eks.UntagResourceOutput, error)
+	UpdateClusterVersion(ctx context.Context, input *eks.UpdateClusterVersionInput, opts ...func(*eks.Options)) (*eks.UpdateClusterVersionOutput, error)
+
+	DescribeNodegroup(ctx context.Context, input *eks.DescribeNodegroupInput, opts ...func(*eks.Options)) (*eks.DescribeNodegroupOutput, error)
+	CreateNodegroup(ctx context.Context, input *eks.CreateNodegroupInput, opts ...func(*eks.Options)) (*eks.CreateNodegroupOutput, error)
+	UpdateNodegroupVersion(ctx context.Context, input *eks.UpdateNodegroupVersionInput, opts ...func(*eks.Options)) (*eks.UpdateNodegroupVersionOutput, error)
+	UpdateNodegroupConfig(ctx context.Context, input *eks.UpdateNodegroupConfigInput, opts ...func(*eks.Options)) (*eks.UpdateNodegroupConfigOutput, error)
+	DeleteNodegroup(ctx context.Context, input *eks.DeleteNodegroupInput, opts ...func(*eks.Options)) (*eks.DeleteNodegroupOutput, error)
+
+	DescribeFargateProfile(ctx context.Context, input *eks.DescribeFargateProfileInput, opts ...func(*eks.Options)) (*eks.DescribeFargateProfileOutput, error)
+	CreateFargateProfile(ctx context.Context, input *eks.CreateFargateProfileInput, opts ...func(*eks.Options)) (*eks.CreateFargateProfileOutput, error)
+	DeleteFargateProfile(ctx context.Context, input *eks.DeleteFargateProfileInput, opts ...func(*eks.Options)) (*eks.DeleteFargateProfileOutput, error)
+}
 
 // STSClient defines STS Client operations
-type STSClient sts.Client
+// NOTE(cvodak): presigning was removed from aws-sdk-go-v2 and replaced in limited capacity
+// need to use v1 until https://github.com/aws/aws-sdk-go-v2/issues/1021
+type STSClient stsiface.STSAPI
 
 // NewEKSClient creates new EKS Client with provided AWS Configurations/Credentials.
 func NewEKSClient(cfg aws.Config) Client {
-	return eks.New(cfg)
+	return eks.NewFromConfig(cfg)
 }
 
 // NewSTSClient creates a new STS Client.
-func NewSTSClient(cfg aws.Config) STSClient {
-	return sts.New(cfg)
+func NewSTSClient(sess *session.Session) STSClient {
+	return sts.New(sess)
 }
 
-// IsErrorNotFound helper function to test for ErrCodeResourceNotFoundException error.
+// IsErrorNotFound helper function to test for ResourceNotFoundException error.
 func IsErrorNotFound(err error) bool {
-	if err == nil {
-		return false
+	var nfe *ekstypes.ResourceNotFoundException
+	if errors.As(err, &nfe) {
+		return true
 	}
-	return strings.Contains(err.Error(), eks.ErrCodeResourceNotFoundException)
+	return false
 }
 
-// IsErrorInUse helper function to test for ErrCodeResourceInUseException error.
+// IsErrorInUse helper function to test for eResourceInUseException error.
 func IsErrorInUse(err error) bool {
-	if err == nil {
-		return false
+	var iue *ekstypes.ResourceInUseException
+	if errors.As(err, &iue) {
+		return true
 	}
-	return strings.Contains(err.Error(), eks.ErrCodeResourceInUseException)
+	return false
 }
 
-// IsErrorInvalidRequest helper function to test for ErrCodeInvalidRequestException error.
+// IsErrorInvalidRequest helper function to test for InvalidRequestException error.
 func IsErrorInvalidRequest(err error) bool {
-	if err == nil {
-		return false
+	var ire *ekstypes.InvalidRequestException
+	if errors.As(err, &ire) {
+		return true
 	}
-	return strings.Contains(err.Error(), eks.ErrCodeInvalidRequestException)
+	return false
 }
 
 // GenerateCreateClusterInput from ClusterParameters.
@@ -94,10 +121,10 @@ func GenerateCreateClusterInput(name string, p *v1beta1.ClusterParameters) *eks.
 	}
 
 	if len(p.EncryptionConfig) > 0 {
-		c.EncryptionConfig = make([]eks.EncryptionConfig, len(p.EncryptionConfig))
+		c.EncryptionConfig = make([]ekstypes.EncryptionConfig, len(p.EncryptionConfig))
 		for i, conf := range p.EncryptionConfig {
-			c.EncryptionConfig[i] = eks.EncryptionConfig{
-				Provider: &eks.Provider{
+			c.EncryptionConfig[i] = ekstypes.EncryptionConfig{
+				Provider: &ekstypes.Provider{
 					KeyArn: awsclients.String(conf.Provider.KeyArn),
 				},
 				Resources: conf.Resources,
@@ -105,7 +132,7 @@ func GenerateCreateClusterInput(name string, p *v1beta1.ClusterParameters) *eks.
 		}
 	}
 
-	c.ResourcesVpcConfig = &eks.VpcConfigRequest{
+	c.ResourcesVpcConfig = &ekstypes.VpcConfigRequest{
 		EndpointPrivateAccess: p.ResourcesVpcConfig.EndpointPrivateAccess,
 		EndpointPublicAccess:  p.ResourcesVpcConfig.EndpointPublicAccess,
 		PublicAccessCidrs:     p.ResourcesVpcConfig.PublicAccessCidrs,
@@ -114,15 +141,15 @@ func GenerateCreateClusterInput(name string, p *v1beta1.ClusterParameters) *eks.
 	}
 
 	if p.Logging != nil {
-		c.Logging = &eks.Logging{
-			ClusterLogging: make([]eks.LogSetup, len(p.Logging.ClusterLogging)),
+		c.Logging = &ekstypes.Logging{
+			ClusterLogging: make([]ekstypes.LogSetup, len(p.Logging.ClusterLogging)),
 		}
 		for i, cl := range p.Logging.ClusterLogging {
-			types := make([]eks.LogType, len(cl.Types))
+			types := make([]ekstypes.LogType, len(cl.Types))
 			for j, t := range cl.Types {
-				types[j] = eks.LogType(t)
+				types[j] = ekstypes.LogType(t)
 			}
-			c.Logging.ClusterLogging[i] = eks.LogSetup{
+			c.Logging.ClusterLogging[i] = ekstypes.LogSetup{
 				Enabled: cl.Enabled,
 				Types:   types,
 			}
@@ -136,8 +163,8 @@ func GenerateCreateClusterInput(name string, p *v1beta1.ClusterParameters) *eks.
 
 // CreatePatch creates a *v1beta1.ClusterParameters that has only the changed
 // values between the target *v1beta1.ClusterParameters and the current
-// *eks.Cluster.
-func CreatePatch(in *eks.Cluster, target *v1beta1.ClusterParameters) (*v1beta1.ClusterParameters, error) {
+// *ekstypes.Cluster.
+func CreatePatch(in *ekstypes.Cluster, target *v1beta1.ClusterParameters) (*v1beta1.ClusterParameters, error) {
 	currentParams := &v1beta1.ClusterParameters{}
 	LateInitialize(currentParams, in)
 
@@ -159,15 +186,15 @@ func GenerateUpdateClusterConfigInput(name string, p *v1beta1.ClusterParameters)
 	}
 
 	if p.Logging != nil {
-		u.Logging = &eks.Logging{
-			ClusterLogging: make([]eks.LogSetup, len(p.Logging.ClusterLogging)),
+		u.Logging = &ekstypes.Logging{
+			ClusterLogging: make([]ekstypes.LogSetup, len(p.Logging.ClusterLogging)),
 		}
 		for i, cl := range p.Logging.ClusterLogging {
-			types := make([]eks.LogType, len(cl.Types))
+			types := make([]ekstypes.LogType, len(cl.Types))
 			for j, t := range cl.Types {
-				types[j] = eks.LogType(t)
+				types[j] = ekstypes.LogType(t)
 			}
-			u.Logging.ClusterLogging[i] = eks.LogSetup{
+			u.Logging.ClusterLogging[i] = ekstypes.LogSetup{
 				Enabled: cl.Enabled,
 				Types:   types,
 			}
@@ -177,7 +204,7 @@ func GenerateUpdateClusterConfigInput(name string, p *v1beta1.ClusterParameters)
 	// NOTE(muvaf): SecurityGroupIds and SubnetIds cannot be updated. They are
 	// included in VpcConfigRequest probably because it is used in Create call
 	// as well.
-	u.ResourcesVpcConfig = &eks.VpcConfigRequest{
+	u.ResourcesVpcConfig = &ekstypes.VpcConfigRequest{
 		EndpointPrivateAccess: p.ResourcesVpcConfig.EndpointPrivateAccess,
 		EndpointPublicAccess:  p.ResourcesVpcConfig.EndpointPublicAccess,
 		PublicAccessCidrs:     p.ResourcesVpcConfig.PublicAccessCidrs,
@@ -186,8 +213,8 @@ func GenerateUpdateClusterConfigInput(name string, p *v1beta1.ClusterParameters)
 }
 
 // GenerateObservation is used to produce v1beta1.ClusterObservation from
-// eks.Cluster.
-func GenerateObservation(cluster *eks.Cluster) v1beta1.ClusterObservation { // nolint:gocyclo
+// ekstypes.Cluster.
+func GenerateObservation(cluster *ekstypes.Cluster) v1beta1.ClusterObservation { // nolint:gocyclo
 	if cluster == nil {
 		return v1beta1.ClusterObservation{}
 	}
@@ -220,8 +247,8 @@ func GenerateObservation(cluster *eks.Cluster) v1beta1.ClusterObservation { // n
 }
 
 // LateInitialize fills the empty fields in *v1beta1.ClusterParameters with the
-// values seen in eks.Cluster.
-func LateInitialize(in *v1beta1.ClusterParameters, cluster *eks.Cluster) { // nolint:gocyclo
+// values seen in ekstypes.Cluster.
+func LateInitialize(in *v1beta1.ClusterParameters, cluster *ekstypes.Cluster) { // nolint:gocyclo
 	if cluster == nil {
 		return
 	}
@@ -254,8 +281,8 @@ func LateInitialize(in *v1beta1.ClusterParameters, cluster *eks.Cluster) { // no
 		}
 	}
 	if cluster.ResourcesVpcConfig != nil {
-		in.ResourcesVpcConfig.EndpointPrivateAccess = awsclients.LateInitializeBoolPtr(in.ResourcesVpcConfig.EndpointPrivateAccess, cluster.ResourcesVpcConfig.EndpointPrivateAccess)
-		in.ResourcesVpcConfig.EndpointPublicAccess = awsclients.LateInitializeBoolPtr(in.ResourcesVpcConfig.EndpointPublicAccess, cluster.ResourcesVpcConfig.EndpointPublicAccess)
+		in.ResourcesVpcConfig.EndpointPrivateAccess = awsclients.LateInitializeBoolPtr(in.ResourcesVpcConfig.EndpointPrivateAccess, &cluster.ResourcesVpcConfig.EndpointPrivateAccess)
+		in.ResourcesVpcConfig.EndpointPublicAccess = awsclients.LateInitializeBoolPtr(in.ResourcesVpcConfig.EndpointPublicAccess, &cluster.ResourcesVpcConfig.EndpointPublicAccess)
 		if len(in.ResourcesVpcConfig.PublicAccessCidrs) == 0 && len(cluster.ResourcesVpcConfig.PublicAccessCidrs) > 0 {
 			in.ResourcesVpcConfig.PublicAccessCidrs = cluster.ResourcesVpcConfig.PublicAccessCidrs
 		}
@@ -278,7 +305,7 @@ func LateInitialize(in *v1beta1.ClusterParameters, cluster *eks.Cluster) { // no
 }
 
 // IsUpToDate checks whether there is a change in any of the modifiable fields.
-func IsUpToDate(p *v1beta1.ClusterParameters, cluster *eks.Cluster) (bool, error) {
+func IsUpToDate(p *v1beta1.ClusterParameters, cluster *ekstypes.Cluster) (bool, error) {
 	patch, err := CreatePatch(cluster, p)
 	if err != nil {
 		return false, err
@@ -317,12 +344,12 @@ func IsUpToDate(p *v1beta1.ClusterParameters, cluster *eks.Cluster) (bool, error
 	return res, nil
 }
 
-// GetConnectionDetails extracts managed.ConnectionDetails out of eks.Cluster.
-func GetConnectionDetails(cluster *eks.Cluster, stsClient STSClient) managed.ConnectionDetails {
+// GetConnectionDetails extracts managed.ConnectionDetails out of ekstypes.Cluster.
+func GetConnectionDetails(cluster *ekstypes.Cluster, stsClient STSClient) managed.ConnectionDetails {
 	if cluster == nil || cluster.Name == nil || cluster.Endpoint == nil || cluster.CertificateAuthority == nil || cluster.CertificateAuthority.Data == nil {
 		return managed.ConnectionDetails{}
 	}
-	request := stsClient.GetCallerIdentityRequest(&sts.GetCallerIdentityInput{})
+	request, _ := stsClient.GetCallerIdentityRequest(&sts.GetCallerIdentityInput{})
 	request.HTTPRequest.Header.Add(clusterIDHeader, *cluster.Name)
 
 	// NOTE(hasheddan): This is carried over from the v1alpha3 version of the

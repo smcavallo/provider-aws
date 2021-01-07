@@ -18,6 +18,7 @@ package eks
 
 import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,7 +32,7 @@ import (
 func GenerateCreateNodeGroupInput(name string, p *v1alpha1.NodeGroupParameters) *eks.CreateNodegroupInput {
 	c := &eks.CreateNodegroupInput{
 		NodegroupName:  &name,
-		AmiType:        eks.AMITypes(aws.StringValue(p.AMIType)),
+		AmiType:        ekstypes.AMITypes(aws.StringValue(p.AMIType)),
 		ClusterName:    &p.ClusterName,
 		DiskSize:       p.DiskSize,
 		InstanceTypes:  p.InstanceTypes,
@@ -43,13 +44,13 @@ func GenerateCreateNodeGroupInput(name string, p *v1alpha1.NodeGroupParameters) 
 		Version:        p.Version,
 	}
 	if p.RemoteAccess != nil {
-		c.RemoteAccess = &eks.RemoteAccessConfig{
+		c.RemoteAccess = &ekstypes.RemoteAccessConfig{
 			Ec2SshKey:            p.RemoteAccess.EC2SSHKey,
 			SourceSecurityGroups: p.RemoteAccess.SourceSecurityGroups,
 		}
 	}
 	if p.ScalingConfig != nil {
-		c.ScalingConfig = &eks.NodegroupScalingConfig{
+		c.ScalingConfig = &ekstypes.NodegroupScalingConfig{
 			DesiredSize: p.ScalingConfig.DesiredSize,
 			MinSize:     p.ScalingConfig.MinSize,
 			MaxSize:     p.ScalingConfig.MaxSize,
@@ -67,7 +68,7 @@ func GenerateCreateNodeGroupInput(name string, p *v1alpha1.NodeGroupParameters) 
 }
 
 // GenerateUpdateNodeGroupConfigInput from NodeGroupParameters.
-func GenerateUpdateNodeGroupConfigInput(name string, p *v1alpha1.NodeGroupParameters, ng *eks.Nodegroup) *eks.UpdateNodegroupConfigInput {
+func GenerateUpdateNodeGroupConfigInput(name string, p *v1alpha1.NodeGroupParameters, ng *ekstypes.Nodegroup) *eks.UpdateNodegroupConfigInput {
 	u := &eks.UpdateNodegroupConfigInput{
 		NodegroupName: &name,
 		ClusterName:   &p.ClusterName,
@@ -75,13 +76,13 @@ func GenerateUpdateNodeGroupConfigInput(name string, p *v1alpha1.NodeGroupParame
 
 	if len(p.Labels) > 0 {
 		addOrModify, remove := aws.DiffLabels(p.Labels, ng.Labels)
-		u.Labels = &eks.UpdateLabelsPayload{
+		u.Labels = &ekstypes.UpdateLabelsPayload{
 			AddOrUpdateLabels: addOrModify,
 			RemoveLabels:      remove,
 		}
 	}
 	if p.ScalingConfig != nil {
-		u.ScalingConfig = &eks.NodegroupScalingConfig{
+		u.ScalingConfig = &ekstypes.NodegroupScalingConfig{
 			DesiredSize: p.ScalingConfig.DesiredSize,
 			MinSize:     p.ScalingConfig.MinSize,
 			MaxSize:     p.ScalingConfig.MaxSize,
@@ -106,7 +107,7 @@ func GenerateUpdateNodeGroupConfigInput(name string, p *v1alpha1.NodeGroupParame
 
 // GenerateNodeGroupObservation is used to produce v1alpha1.NodeGroupObservation
 // from eks.Nodegroup.
-func GenerateNodeGroupObservation(ng *eks.Nodegroup) v1alpha1.NodeGroupObservation { // nolint:gocyclo
+func GenerateNodeGroupObservation(ng *ekstypes.Nodegroup) v1alpha1.NodeGroupObservation { // nolint:gocyclo
 	if ng == nil {
 		return v1alpha1.NodeGroupObservation{}
 	}
@@ -155,12 +156,12 @@ func GenerateNodeGroupObservation(ng *eks.Nodegroup) v1alpha1.NodeGroupObservati
 
 // LateInitializeNodeGroup fills the empty fields in *v1alpha1.NodeGroupParameters with the
 // values seen in eks.Nodegroup.
-func LateInitializeNodeGroup(in *v1alpha1.NodeGroupParameters, ng *eks.Nodegroup) { // nolint:gocyclo
+func LateInitializeNodeGroup(in *v1alpha1.NodeGroupParameters, ng *ekstypes.Nodegroup) { // nolint:gocyclo
 	if ng == nil {
 		return
 	}
 	in.AMIType = awsclients.LateInitializeStringPtr(in.AMIType, awsclients.String(string(ng.AmiType)))
-	in.DiskSize = awsclients.LateInitializeInt64Ptr(in.DiskSize, ng.DiskSize)
+	in.DiskSize = awsclients.LateInitializeInt32Ptr(in.DiskSize, ng.DiskSize)
 	if len(in.InstanceTypes) == 0 && len(ng.InstanceTypes) > 0 {
 		in.InstanceTypes = ng.InstanceTypes
 	}
@@ -191,7 +192,7 @@ func LateInitializeNodeGroup(in *v1alpha1.NodeGroupParameters, ng *eks.Nodegroup
 }
 
 // IsNodeGroupUpToDate checks whether there is a change in any of the modifiable fields.
-func IsNodeGroupUpToDate(p *v1alpha1.NodeGroupParameters, ng *eks.Nodegroup) bool { // nolint:gocyclo
+func IsNodeGroupUpToDate(p *v1alpha1.NodeGroupParameters, ng *ekstypes.Nodegroup) bool { // nolint:gocyclo
 	if !cmp.Equal(p.Tags, ng.Tags, cmpopts.EquateEmpty()) {
 		return false
 	}

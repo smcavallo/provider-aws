@@ -92,6 +92,7 @@ github.com/aws/aws-sdk-go-v2/service/ec2 v0.31.0/go.mod h1:l0pwXTelza2kR5KczSC7f
 github.com/aws/aws-sdk-go-v2/service/ecr v0.31.0/go.mod h1:57qetkcAXkGAsoRsxPUpK/ZuTj9A1b6vq7wnig/q7ac=
 github.com/aws/aws-sdk-go-v2/service/eks v0.31.0/go.mod h1:6dzei1oFWmVBcjD5J/n2WoYe3w90gwUuO5GLIxQfY3M=
 github.com/aws/aws-sdk-go-v2/service/elasticache v0.31.0/go.mod h1:qgPiENzy2GQMGsbAbGHzbZfe4HBkhxlQUxSoqrfsyO4=
+github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v0.31.0 h1:53+EY9rDKKDAJ0cTuD/v+drY29k7IN8pCqaNvVsC3+s=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v0.31.0/go.mod h1:I+GNxv9WaxS3zV7J30UVTMdTb2cyC3K8yrNWddmGoqc=
 github.com/aws/aws-sdk-go-v2/service/iam v0.31.0/go.mod h1:uqLp4cqedOQNNICBvmGhDLm9pJmN7E4gt0M0w5yFS2Y=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v0.4.0/go.mod h1:Pjv1Z+nRaluwWCMuB6OQeqGRyiGk2WTrKG8RHs5wZug=

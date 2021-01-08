@@ -17,11 +17,11 @@ package redshift
 
 import (
 	"context"
-	"net/http"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsredshift "github.com/aws/aws-sdk-go-v2/service/redshift"
+	awsredshifttypes "github.com/aws/aws-sdk-go-v2/service/redshift/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -81,7 +81,7 @@ func cluster(m ...redshiftModifier) *v1alpha1.Cluster {
 				MasterUsername: masterUsername,
 				NodeType:       nodeType,
 				ClusterType:    &singleNode,
-				NumberOfNodes:  aws.Int64(1),
+				NumberOfNodes:  aws.Int32(1),
 			},
 		},
 	}
@@ -108,20 +108,18 @@ func TestObserve(t *testing.T) {
 		"SuccessfulAvailable": {
 			args: args{
 				redshift: &fake.MockRedshiftClient{
-					MockDescribe: func(input *awsredshift.DescribeClustersInput) awsredshift.DescribeClustersRequest {
-						return awsredshift.DescribeClustersRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.DescribeClustersOutput{
-								Clusters: []awsredshift.Cluster{
-									{
-										ClusterStatus:     aws.String(string(v1alpha1.StateAvailable)),
-										NumberOfNodes:     aws.Int64(1),
-										ClusterIdentifier: &name,
-										MasterUsername:    &masterUsername,
-										NodeType:          &nodeType,
-									},
+					MockDescribe: func(ctx context.Context, input *awsredshift.DescribeClustersInput, opts []func(*awsredshift.Options)) (*awsredshift.DescribeClustersOutput, error) {
+						return &awsredshift.DescribeClustersOutput{
+							Clusters: []awsredshifttypes.Cluster{
+								{
+									ClusterStatus:     aws.String(string(v1alpha1.StateAvailable)),
+									NumberOfNodes:     1,
+									ClusterIdentifier: &name,
+									MasterUsername:    &masterUsername,
+									NodeType:          &nodeType,
 								},
-							}},
-						}
+							},
+						}, nil
 					},
 				},
 				cr: cluster(),
@@ -140,20 +138,18 @@ func TestObserve(t *testing.T) {
 		"DeletingState": {
 			args: args{
 				redshift: &fake.MockRedshiftClient{
-					MockDescribe: func(input *awsredshift.DescribeClustersInput) awsredshift.DescribeClustersRequest {
-						return awsredshift.DescribeClustersRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.DescribeClustersOutput{
-								Clusters: []awsredshift.Cluster{
-									{
-										ClusterStatus:     aws.String(string(v1alpha1.StateDeleting)),
-										NumberOfNodes:     aws.Int64(1),
-										ClusterIdentifier: &name,
-										MasterUsername:    &masterUsername,
-										NodeType:          &nodeType,
-									},
+					MockDescribe: func(ctx context.Context, input *awsredshift.DescribeClustersInput, opts []func(*awsredshift.Options)) (*awsredshift.DescribeClustersOutput, error) {
+						return &awsredshift.DescribeClustersOutput{
+							Clusters: []awsredshifttypes.Cluster{
+								{
+									ClusterStatus:     aws.String(string(v1alpha1.StateDeleting)),
+									NumberOfNodes:     1,
+									ClusterIdentifier: &name,
+									MasterUsername:    &masterUsername,
+									NodeType:          &nodeType,
 								},
-							}},
-						}
+							},
+						}, nil
 					},
 				},
 				cr: cluster(),
@@ -172,20 +168,18 @@ func TestObserve(t *testing.T) {
 		"FailedState": {
 			args: args{
 				redshift: &fake.MockRedshiftClient{
-					MockDescribe: func(input *awsredshift.DescribeClustersInput) awsredshift.DescribeClustersRequest {
-						return awsredshift.DescribeClustersRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.DescribeClustersOutput{
-								Clusters: []awsredshift.Cluster{
-									{
-										ClusterStatus:     aws.String(string(v1alpha1.StateFailed)),
-										NumberOfNodes:     aws.Int64(1),
-										ClusterIdentifier: &name,
-										MasterUsername:    &masterUsername,
-										NodeType:          &nodeType,
-									},
+					MockDescribe: func(ctx context.Context, input *awsredshift.DescribeClustersInput, opts []func(*awsredshift.Options)) (*awsredshift.DescribeClustersOutput, error) {
+						return &awsredshift.DescribeClustersOutput{
+							Clusters: []awsredshifttypes.Cluster{
+								{
+									ClusterStatus:     aws.String(string(v1alpha1.StateFailed)),
+									NumberOfNodes:     1,
+									ClusterIdentifier: &name,
+									MasterUsername:    &masterUsername,
+									NodeType:          &nodeType,
 								},
-							}},
-						}
+							},
+						}, nil
 					},
 				},
 				cr: cluster(),
@@ -204,10 +198,8 @@ func TestObserve(t *testing.T) {
 		"FailedDescribeRequest": {
 			args: args{
 				redshift: &fake.MockRedshiftClient{
-					MockDescribe: func(input *awsredshift.DescribeClustersInput) awsredshift.DescribeClustersRequest {
-						return awsredshift.DescribeClustersRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: errBoom},
-						}
+					MockDescribe: func(ctx context.Context, input *awsredshift.DescribeClustersInput, opts []func(*awsredshift.Options)) (*awsredshift.DescribeClustersOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: cluster(),
@@ -220,10 +212,8 @@ func TestObserve(t *testing.T) {
 		"NotFound": {
 			args: args{
 				redshift: &fake.MockRedshiftClient{
-					MockDescribe: func(input *awsredshift.DescribeClustersInput) awsredshift.DescribeClustersRequest {
-						return awsredshift.DescribeClustersRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: errors.New(awsredshift.ErrCodeClusterNotFoundFault)},
-						}
+					MockDescribe: func(ctx context.Context, input *awsredshift.DescribeClustersInput, opts []func(*awsredshift.Options)) (*awsredshift.DescribeClustersOutput, error) {
+						return nil, &awsredshifttypes.ClusterNotFoundFault{}
 					},
 				},
 				cr: cluster(),
@@ -238,20 +228,18 @@ func TestObserve(t *testing.T) {
 					MockUpdate: test.NewMockUpdateFn(nil),
 				},
 				redshift: &fake.MockRedshiftClient{
-					MockDescribe: func(input *awsredshift.DescribeClustersInput) awsredshift.DescribeClustersRequest {
-						return awsredshift.DescribeClustersRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.DescribeClustersOutput{
-								Clusters: []awsredshift.Cluster{
-									{
-										ClusterStatus:     aws.String(string(v1alpha1.StateCreating)),
-										NumberOfNodes:     aws.Int64(1),
-										ClusterIdentifier: &name,
-										MasterUsername:    &masterUsername,
-										NodeType:          &nodeType,
-									},
+					MockDescribe: func(ctx context.Context, input *awsredshift.DescribeClustersInput, opts []func(*awsredshift.Options)) (*awsredshift.DescribeClustersOutput, error) {
+						return &awsredshift.DescribeClustersOutput{
+							Clusters: []awsredshifttypes.Cluster{
+								{
+									ClusterStatus:     aws.String(string(v1alpha1.StateFailed)),
+									NumberOfNodes:     1,
+									ClusterIdentifier: &name,
+									MasterUsername:    &masterUsername,
+									NodeType:          &nodeType,
 								},
-							}},
-						}
+							},
+						}, nil
 					},
 				},
 				cr: cluster(),
@@ -302,10 +290,8 @@ func TestCreate(t *testing.T) {
 		"Successful": {
 			args: args{
 				redshift: &fake.MockRedshiftClient{
-					MockCreate: func(input *awsredshift.CreateClusterInput) awsredshift.CreateClusterRequest {
-						return awsredshift.CreateClusterRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.CreateClusterOutput{}},
-						}
+					MockCreate: func(ctx context.Context, input *awsredshift.CreateClusterInput, opts []func(*awsredshift.Options)) (*awsredshift.CreateClusterOutput, error) {
+						return &awsredshift.CreateClusterOutput{}, nil
 					},
 				},
 				cr: cluster(withMasterUsername(masterUsername)),
@@ -335,10 +321,8 @@ func TestCreate(t *testing.T) {
 		"FailedRequest": {
 			args: args{
 				redshift: &fake.MockRedshiftClient{
-					MockCreate: func(input *awsredshift.CreateClusterInput) awsredshift.CreateClusterRequest {
-						return awsredshift.CreateClusterRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: errBoom},
-						}
+					MockCreate: func(ctx context.Context, input *awsredshift.CreateClusterInput, opts []func(*awsredshift.Options)) (*awsredshift.CreateClusterOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: cluster(),
@@ -389,17 +373,13 @@ func TestUpdate(t *testing.T) {
 					MockUpdate: test.NewMockUpdateFn(nil),
 				},
 				redshift: &fake.MockRedshiftClient{
-					MockModify: func(input *awsredshift.ModifyClusterInput) awsredshift.ModifyClusterRequest {
-						return awsredshift.ModifyClusterRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.ModifyClusterOutput{}},
-						}
+					MockModify: func(ctx context.Context, input *awsredshift.ModifyClusterInput, opts []func(*awsredshift.Options)) (*awsredshift.ModifyClusterOutput, error) {
+						return &awsredshift.ModifyClusterOutput{}, nil
 					},
-					MockDescribe: func(input *awsredshift.DescribeClustersInput) awsredshift.DescribeClustersRequest {
-						return awsredshift.DescribeClustersRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.DescribeClustersOutput{
-								Clusters: []awsredshift.Cluster{{}},
-							}},
-						}
+					MockDescribe: func(ctx context.Context, input *awsredshift.DescribeClustersInput, opts []func(*awsredshift.Options)) (*awsredshift.DescribeClustersOutput, error) {
+						return &awsredshift.DescribeClustersOutput{
+							Clusters: []awsredshifttypes.Cluster{{}},
+						}, nil
 					},
 				},
 				cr: cluster(withNewClusterIdentifier("update")),
@@ -419,10 +399,8 @@ func TestUpdate(t *testing.T) {
 		"FailedDescribe": {
 			args: args{
 				redshift: &fake.MockRedshiftClient{
-					MockDescribe: func(input *awsredshift.DescribeClustersInput) awsredshift.DescribeClustersRequest {
-						return awsredshift.DescribeClustersRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: errBoom},
-						}
+					MockDescribe: func(ctx context.Context, input *awsredshift.DescribeClustersInput, opts []func(*awsredshift.Options)) (*awsredshift.DescribeClustersOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: cluster(),
@@ -435,17 +413,13 @@ func TestUpdate(t *testing.T) {
 		"FailedModify": {
 			args: args{
 				redshift: &fake.MockRedshiftClient{
-					MockModify: func(input *awsredshift.ModifyClusterInput) awsredshift.ModifyClusterRequest {
-						return awsredshift.ModifyClusterRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: errBoom},
-						}
+					MockModify: func(ctx context.Context, input *awsredshift.ModifyClusterInput, opts []func(*awsredshift.Options)) (*awsredshift.ModifyClusterOutput, error) {
+						return nil, errBoom
 					},
-					MockDescribe: func(input *awsredshift.DescribeClustersInput) awsredshift.DescribeClustersRequest {
-						return awsredshift.DescribeClustersRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.DescribeClustersOutput{
-								Clusters: []awsredshift.Cluster{{}},
-							}},
-						}
+					MockDescribe: func(ctx context.Context, input *awsredshift.DescribeClustersInput, opts []func(*awsredshift.Options)) (*awsredshift.DescribeClustersOutput, error) {
+						return &awsredshift.DescribeClustersOutput{
+							Clusters: []awsredshifttypes.Cluster{{}},
+						}, nil
 					},
 				},
 				cr: cluster(),
@@ -491,22 +465,16 @@ func TestDelete(t *testing.T) {
 					MockUpdate: test.NewMockUpdateFn(nil),
 				},
 				redshift: &fake.MockRedshiftClient{
-					MockDelete: func(input *awsredshift.DeleteClusterInput) awsredshift.DeleteClusterRequest {
-						return awsredshift.DeleteClusterRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.DeleteClusterOutput{}},
-						}
+					MockDelete: func(ctx context.Context, input *awsredshift.DeleteClusterInput, opts []func(*awsredshift.Options)) (*awsredshift.DeleteClusterOutput, error) {
+						return &awsredshift.DeleteClusterOutput{}, nil
 					},
-					MockModify: func(input *awsredshift.ModifyClusterInput) awsredshift.ModifyClusterRequest {
-						return awsredshift.ModifyClusterRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.ModifyClusterOutput{}},
-						}
+					MockModify: func(ctx context.Context, input *awsredshift.ModifyClusterInput, opts []func(*awsredshift.Options)) (*awsredshift.ModifyClusterOutput, error) {
+						return &awsredshift.ModifyClusterOutput{}, nil
 					},
-					MockDescribe: func(input *awsredshift.DescribeClustersInput) awsredshift.DescribeClustersRequest {
-						return awsredshift.DescribeClustersRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.DescribeClustersOutput{
-								Clusters: []awsredshift.Cluster{{}},
-							}},
-						}
+					MockDescribe: func(ctx context.Context, input *awsredshift.DescribeClustersInput, opts []func(*awsredshift.Options)) (*awsredshift.DescribeClustersOutput, error) {
+						return &awsredshift.DescribeClustersOutput{
+							Clusters: []awsredshifttypes.Cluster{{}},
+						}, nil
 					},
 				},
 				cr: cluster(),
@@ -531,15 +499,11 @@ func TestDelete(t *testing.T) {
 				},
 
 				redshift: &fake.MockRedshiftClient{
-					MockDelete: func(input *awsredshift.DeleteClusterInput) awsredshift.DeleteClusterRequest {
-						return awsredshift.DeleteClusterRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: errors.New(awsredshift.ErrCodeClusterNotFoundFault)},
-						}
+					MockDelete: func(ctx context.Context, input *awsredshift.DeleteClusterInput, opts []func(*awsredshift.Options)) (*awsredshift.DeleteClusterOutput, error) {
+						return nil, &awsredshifttypes.ClusterNotFoundFault{}
 					},
-					MockDescribe: func(input *awsredshift.DescribeClustersInput) awsredshift.DescribeClustersRequest {
-						return awsredshift.DescribeClustersRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: errors.New(awsredshift.ErrCodeClusterNotFoundFault)},
-						}
+					MockDescribe: func(ctx context.Context, input *awsredshift.DescribeClustersInput, opts []func(*awsredshift.Options)) (*awsredshift.DescribeClustersOutput, error) {
+						return nil, &awsredshifttypes.ClusterNotFoundFault{}
 					},
 				},
 				cr: cluster(),
@@ -551,22 +515,16 @@ func TestDelete(t *testing.T) {
 		"Failed": {
 			args: args{
 				redshift: &fake.MockRedshiftClient{
-					MockDelete: func(input *awsredshift.DeleteClusterInput) awsredshift.DeleteClusterRequest {
-						return awsredshift.DeleteClusterRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Error: errBoom},
-						}
+					MockDelete: func(ctx context.Context, input *awsredshift.DeleteClusterInput, opts []func(*awsredshift.Options)) (*awsredshift.DeleteClusterOutput, error) {
+						return nil, errBoom
 					},
-					MockModify: func(input *awsredshift.ModifyClusterInput) awsredshift.ModifyClusterRequest {
-						return awsredshift.ModifyClusterRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.ModifyClusterOutput{}},
-						}
+					MockModify: func(ctx context.Context, input *awsredshift.ModifyClusterInput, opts []func(*awsredshift.Options)) (*awsredshift.ModifyClusterOutput, error) {
+						return &awsredshift.ModifyClusterOutput{}, nil
 					},
-					MockDescribe: func(input *awsredshift.DescribeClustersInput) awsredshift.DescribeClustersRequest {
-						return awsredshift.DescribeClustersRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsredshift.DescribeClustersOutput{
-								Clusters: []awsredshift.Cluster{{}},
-							}},
-						}
+					MockDescribe: func(ctx context.Context, input *awsredshift.DescribeClustersInput, opts []func(*awsredshift.Options)) (*awsredshift.DescribeClustersOutput, error) {
+						return &awsredshift.DescribeClustersOutput{
+							Clusters: []awsredshifttypes.Cluster{{}},
+						}, nil
 					},
 				},
 				cr: cluster(),

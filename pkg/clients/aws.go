@@ -537,7 +537,7 @@ func BoolValue(v *bool) bool {
 // LateInitializeBoolPtr returns in if it's non-nil, otherwise returns from
 // which is the backup for the cases in is nil.
 func LateInitializeBoolPtr(in *bool, from *bool) *bool {
-	if in != nil && !*from {
+	if in != nil {
 		return in
 	}
 	return from

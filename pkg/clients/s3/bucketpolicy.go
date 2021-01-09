@@ -17,11 +17,13 @@ limitations under the License.
 package s3
 
 import (
+	"context"
+	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go"
 
 	"github.com/crossplane/provider-aws/apis/s3/v1alpha3"
@@ -29,14 +31,14 @@ import (
 
 // BucketPolicyClient is the external client used for S3BucketPolicy Custom Resource
 type BucketPolicyClient interface {
-	GetBucketPolicyRequest(input *s3.GetBucketPolicyInput) s3.GetBucketPolicyRequest
-	PutBucketPolicyRequest(input *s3.PutBucketPolicyInput) s3.PutBucketPolicyRequest
-	DeleteBucketPolicyRequest(input *s3.DeleteBucketPolicyInput) s3.DeleteBucketPolicyRequest
+	GetBucketPolicy(ctx context.Context, input *s3.GetBucketPolicyInput, opts ...func(*s3.Options)) (*s3.GetBucketPolicyOutput, error)
+	PutBucketPolicy(ctx context.Context, input *s3.PutBucketPolicyInput, opts ...func(*s3.Options)) (*s3.PutBucketPolicyOutput, error)
+	DeleteBucketPolicy(ctx context.Context, input *s3.DeleteBucketPolicyInput, opts ...func(*s3.Options)) (*s3.DeleteBucketPolicyOutput, error)
 }
 
 // NewBucketPolicyClient returns a new client given an aws config
 func NewBucketPolicyClient(cfg aws.Config) BucketPolicyClient {
-	return s3.New(cfg)
+	return s3.NewFromConfig(cfg)
 }
 
 // IsErrorPolicyNotFound returns true if the error code indicates that the item was not found
@@ -51,7 +53,8 @@ func IsErrorPolicyNotFound(err error) bool {
 
 // IsErrorBucketNotFound returns true if the error code indicates that the bucket was not found
 func IsErrorBucketNotFound(err error) bool {
-	if s3err, ok := err.(types.NoSuchBucket); ok {
+	var nsb *s3types.NoSuchBucket
+	if errors.As(err, &nsb) {
 		return true
 	}
 	return false
@@ -130,14 +133,14 @@ func SerializeBucketPrincipal(p *v1alpha3.BucketPrincipal) (interface{}, error) 
 		m["Service"] = tryFirst(p.Service)
 	}
 	if p.Federated != nil {
-		m["Federated"] = aws.StringValue(p.Federated)
+		m["Federated"] = aws.ToString(p.Federated)
 	}
 	if len(p.AWSPrincipals) == 1 {
-		m["AWS"] = aws.StringValue(SerializeAWSPrincipal(p.AWSPrincipals[0]))
+		m["AWS"] = aws.ToString(SerializeAWSPrincipal(p.AWSPrincipals[0]))
 	} else if len(p.AWSPrincipals) > 1 {
 		values := make([]interface{}, len(p.AWSPrincipals))
 		for i := range p.AWSPrincipals {
-			values[i] = aws.StringValue(SerializeAWSPrincipal(p.AWSPrincipals[i]))
+			values[i] = aws.ToString(SerializeAWSPrincipal(p.AWSPrincipals[i]))
 		}
 		m["AWS"] = values
 	}

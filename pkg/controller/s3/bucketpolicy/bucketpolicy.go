@@ -98,9 +98,9 @@ func (e *external) Observe(ctx context.Context, mgd resource.Managed) (managed.E
 		return managed.ExternalObservation{}, errors.New(errUnexpectedObject)
 	}
 
-	resp, err := e.client.GetBucketPolicyRequest(&awss3.GetBucketPolicyInput{
-		Bucket: cr.Spec.Parameters.BucketName,
-	}).Send(ctx)
+	resp, err := e.client.GetBucketPolicy(ctx, &awss3.GetBucketPolicyInput{
+		Bucket: cr.Spec.PolicyBody.BucketName,
+	})
 	if err != nil {
 		if s3.IsErrorBucketNotFound(err) {
 			return managed.ExternalObservation{}, nil
@@ -161,7 +161,7 @@ func (e *external) Create(ctx context.Context, mgd resource.Managed) (managed.Ex
 	}
 
 	policyString := *policyData
-	_, err = e.client.PutBucketPolicyRequest(&awss3.PutBucketPolicyInput{Bucket: cr.Spec.Parameters.BucketName, Policy: aws.String(policyString)}).Send(ctx)
+	_, err = e.client.PutBucketPolicy(ctx, &awss3.PutBucketPolicyInput{Bucket: cr.Spec.PolicyBody.BucketName, Policy: awsclient.String(policyString)})
 	return managed.ExternalCreation{}, awsclient.Wrap(err, errAttach)
 }
 
@@ -177,8 +177,8 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 		return managed.ExternalUpdate{}, errors.Wrap(err, errUpdate)
 	}
 
-	_, err = e.client.PutBucketPolicyRequest(&awss3.PutBucketPolicyInput{Bucket: cr.Spec.Parameters.BucketName, Policy: aws.String(*policyData)}).Send(ctx)
-	return managed.ExternalUpdate{}, awsclient.Wrap(err, errUpdate)
+	_, err = e.client.PutBucketPolicy(ctx, &awss3.PutBucketPolicyInput{Bucket: cr.Spec.PolicyBody.BucketName, Policy: awsclient.String(*policyData)})
+	return managed.ExternalUpdate{}, awsclient.Wrap(err, errAttach)
 }
 
 // Delete removes the existing policy for a bucket
@@ -188,7 +188,7 @@ func (e *external) Delete(ctx context.Context, mgd resource.Managed) error {
 		return errors.New(errUnexpectedObject)
 	}
 	cr.SetConditions(xpv1.Deleting())
-	_, err := e.client.DeleteBucketPolicyRequest(&awss3.DeleteBucketPolicyInput{Bucket: cr.Spec.Parameters.BucketName}).Send(ctx)
+	_, err := e.client.DeleteBucketPolicy(ctx, &awss3.DeleteBucketPolicyInput{Bucket: cr.Spec.PolicyBody.BucketName})
 	if s3.IsErrorBucketNotFound(err) {
 		return nil
 	}

@@ -20,6 +20,7 @@ import (
 	"context"
 
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	awss3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/crossplane/crossplane-runtime/pkg/meta"
 
 	"github.com/crossplane/provider-aws/apis/s3/v1beta1"
@@ -39,7 +40,7 @@ type AccelerateConfigurationClient struct {
 
 // LateInitialize is responsible for initializing the resource based on the external value
 func (in *AccelerateConfigurationClient) LateInitialize(ctx context.Context, bucket *v1beta1.Bucket) error {
-	external, err := in.client.GetBucketAccelerateConfigurationRequest(&awss3.GetBucketAccelerateConfigurationInput{Bucket: awsclient.String(meta.GetExternalName(bucket))}).Send(ctx)
+	external, err := in.client.GetBucketAccelerateConfiguration(ctx, &awss3.GetBucketAccelerateConfigurationInput{Bucket: awsclient.String(meta.GetExternalName(bucket))})
 	if err != nil {
 		// Short stop method for requests in a region without Acceleration Support
 		if s3.MethodNotSupported(err) || s3.ArgumentNotSupported(err) {
@@ -50,7 +51,7 @@ func (in *AccelerateConfigurationClient) LateInitialize(ctx context.Context, buc
 
 	// We need the second check here because by default the accelerateConfig status is not set
 	// by default
-	if external.GetBucketAccelerateConfigurationOutput == nil || len(external.Status) == 0 {
+	if external == nil || len(external.Status) == 0 {
 		return nil
 	}
 
@@ -70,7 +71,7 @@ func NewAccelerateConfigurationClient(client s3.BucketClient) *AccelerateConfigu
 
 // Observe checks if the resource exists and if it matches the local configuration
 func (in *AccelerateConfigurationClient) Observe(ctx context.Context, bucket *v1beta1.Bucket) (ResourceStatus, error) {
-	external, err := in.client.GetBucketAccelerateConfigurationRequest(&awss3.GetBucketAccelerateConfigurationInput{Bucket: awsclient.String(meta.GetExternalName(bucket))}).Send(ctx)
+	external, err := in.client.GetBucketAccelerateConfiguration(ctx, &awss3.GetBucketAccelerateConfigurationInput{Bucket: awsclient.String(meta.GetExternalName(bucket))})
 	if err != nil {
 		// Short stop method for requests in a region without Acceleration Support
 		if s3.MethodNotSupported(err) || s3.ArgumentNotSupported(err) {
@@ -89,7 +90,7 @@ func (in *AccelerateConfigurationClient) Observe(ctx context.Context, bucket *v1
 func GenerateAccelerateConfigurationInput(name string, config *v1beta1.AccelerateConfiguration) *awss3.PutBucketAccelerateConfigurationInput {
 	return &awss3.PutBucketAccelerateConfigurationInput{
 		Bucket:                  awsclient.String(name),
-		AccelerateConfiguration: &awss3.AccelerateConfiguration{Status: awss3.BucketAccelerateStatus(config.Status)},
+		AccelerateConfiguration: &awss3types.AccelerateConfiguration{Status: awss3types.BucketAccelerateStatus(config.Status)},
 	}
 }
 
@@ -99,7 +100,7 @@ func (in *AccelerateConfigurationClient) CreateOrUpdate(ctx context.Context, buc
 		return nil
 	}
 	input := GenerateAccelerateConfigurationInput(meta.GetExternalName(bucket), bucket.Spec.ForProvider.AccelerateConfiguration)
-	_, err := in.client.PutBucketAccelerateConfigurationRequest(input).Send(ctx)
+	_, err := in.client.PutBucketAccelerateConfiguration(ctx, input)
 	return awsclient.Wrap(err, accelPutFailed)
 }
 

@@ -78,10 +78,8 @@ func TestObserve(t *testing.T) {
 		"ClientError": {
 			args: args{
 				s3: &fake.MockBucketClient{
-					MockHeadBucketRequest: func(input *awss3.HeadBucketInput) awss3.HeadBucketRequest {
-						return awss3.HeadBucketRequest{
-							Request: s3Testing.CreateRequest(errBoom, nil),
-						}
+					MockHeadBucket: func(ctx context.Context, input *awss3.HeadBucketInput, opts []func(*awss3.Options)) (*awss3.HeadBucketOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: s3Testing.Bucket(),
@@ -94,10 +92,8 @@ func TestObserve(t *testing.T) {
 		"ResourceDoesNotExist": {
 			args: args{
 				s3: &fake.MockBucketClient{
-					MockHeadBucketRequest: func(input *awss3.HeadBucketInput) awss3.HeadBucketRequest {
-						return awss3.HeadBucketRequest{
-							Request: s3Testing.CreateRequest(awss3types.NoSuchBucket{}, nil),
-						}
+					MockHeadBucket: func(ctx context.Context, input *awss3.HeadBucketInput, opts []func(*awss3.Options)) (*awss3.HeadBucketOutput, error) {
+						return nil, &awss3types.NoSuchBucket{}
 					},
 				},
 				cr: s3Testing.Bucket(),
@@ -128,10 +124,8 @@ func TestObserve(t *testing.T) {
 		},
 		"ValidInputNoLateInitializeUpdateACLFail": {
 			args: args{
-				s3: s3Testing.Client(s3Testing.WithPutACL(func(input *awss3.PutBucketAclInput) awss3.PutBucketAclRequest {
-					return awss3.PutBucketAclRequest{
-						Request: s3Testing.CreateRequest(errBoom, &awss3.PutBucketAclOutput{}),
-					}
+				s3: s3Testing.Client(s3Testing.WithPutACL(func(ctx context.Context, input *awss3.PutBucketAclInput, opts []func(*awss3.Options)) (*awss3.PutBucketAclOutput, error) {
+					return nil, errBoom
 				})),
 				cr: s3Testing.Bucket(),
 			},
@@ -152,11 +146,10 @@ func TestObserve(t *testing.T) {
 					MockUpdate: test.NewMockUpdateFn(nil),
 				},
 				s3: s3Testing.Client(
-					s3Testing.WithGetRequestPayment(func(input *awss3.GetBucketRequestPaymentInput) awss3.GetBucketRequestPaymentRequest {
-						return awss3.GetBucketRequestPaymentRequest{
-							Request: s3Testing.CreateRequest(nil, &awss3.GetBucketRequestPaymentOutput{Payer: awss3.PayerRequester}),
-						}
-					}),
+					s3Testing.WithGetRequestPayment(func(ctx context.Context, input *awss3.GetBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.GetBucketRequestPaymentOutput, error) {
+						return &awss3.GetBucketRequestPaymentOutput{Payer: awss3types.PayerRequester}, nil
+					},
+					),
 				),
 				cr: s3Testing.Bucket(),
 			},
@@ -182,11 +175,10 @@ func TestObserve(t *testing.T) {
 					MockUpdate: test.NewMockUpdateFn(errBoom),
 				},
 				s3: s3Testing.Client(
-					s3Testing.WithGetRequestPayment(func(input *awss3.GetBucketRequestPaymentInput) awss3.GetBucketRequestPaymentRequest {
-						return awss3.GetBucketRequestPaymentRequest{
-							Request: s3Testing.CreateRequest(nil, &awss3.GetBucketRequestPaymentOutput{Payer: awss3.PayerRequester}),
-						}
-					}),
+					s3Testing.WithGetRequestPayment(func(ctx context.Context, input *awss3.GetBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.GetBucketRequestPaymentOutput, error) {
+						return &awss3.GetBucketRequestPaymentOutput{Payer: awss3types.PayerRequester}, nil
+					},
+					),
 				),
 				cr: s3Testing.Bucket(),
 			},
@@ -237,10 +229,8 @@ func TestCreate(t *testing.T) {
 		"VaildInput": {
 			args: args{
 				s3: &fake.MockBucketClient{
-					MockCreateBucketRequest: func(input *awss3.CreateBucketInput) awss3.CreateBucketRequest {
-						return awss3.CreateBucketRequest{
-							Request: s3Testing.CreateRequest(nil, &awss3.CreateBucketOutput{}),
-						}
+					MockCreateBucket: func(ctx context.Context, input *awss3.CreateBucketInput, opts []func(*awss3.Options)) (*awss3.CreateBucketOutput, error) {
+						return &awss3.CreateBucketOutput{}, nil
 					},
 				},
 				cr: s3Testing.Bucket(),
@@ -261,10 +251,8 @@ func TestCreate(t *testing.T) {
 		"ClientError": {
 			args: args{
 				s3: &fake.MockBucketClient{
-					MockCreateBucketRequest: func(input *awss3.CreateBucketInput) awss3.CreateBucketRequest {
-						return awss3.CreateBucketRequest{
-							Request: s3Testing.CreateRequest(errBoom, &awss3.CreateBucketOutput{}),
-						}
+					MockCreateBucket: func(ctx context.Context, input *awss3.CreateBucketInput, opts []func(*awss3.Options)) (*awss3.CreateBucketOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: s3Testing.Bucket(),
@@ -328,15 +316,12 @@ func TestUpdate(t *testing.T) {
 		"ValidInputUpdateNeededSuccess": {
 			args: args{
 				s3: s3Testing.Client(
-					s3Testing.WithGetRequestPayment(func(input *awss3.GetBucketRequestPaymentInput) awss3.GetBucketRequestPaymentRequest {
-						return awss3.GetBucketRequestPaymentRequest{
-							Request: s3Testing.CreateRequest(nil, &awss3.GetBucketRequestPaymentOutput{Payer: awss3.PayerBucketOwner}),
-						}
+					s3Testing.WithGetRequestPayment(func(ctx context.Context, input *awss3.GetBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.GetBucketRequestPaymentOutput, error) {
+						return &awss3.GetBucketRequestPaymentOutput{Payer: awss3types.PayerBucketowner}, nil
+
 					}),
-					s3Testing.WithPutRequestPayment(func(input *awss3.PutBucketRequestPaymentInput) awss3.PutBucketRequestPaymentRequest {
-						return awss3.PutBucketRequestPaymentRequest{
-							Request: s3Testing.CreateRequest(nil, &awss3.PutBucketRequestPaymentOutput{}),
-						}
+					s3Testing.WithPutRequestPayment(func(ctx context.Context, input *awss3.PutBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.PutBucketRequestPaymentOutput, error) {
+						return &awss3.PutBucketRequestPaymentOutput{}, nil
 					}),
 				),
 				cr: s3Testing.Bucket(s3Testing.WithPayerConfig(&v1beta1.PaymentConfiguration{Payer: "Requester"})),
@@ -352,15 +337,12 @@ func TestUpdate(t *testing.T) {
 		"ValidInputUpdateNeededFailed": {
 			args: args{
 				s3: s3Testing.Client(
-					s3Testing.WithGetRequestPayment(func(input *awss3.GetBucketRequestPaymentInput) awss3.GetBucketRequestPaymentRequest {
-						return awss3.GetBucketRequestPaymentRequest{
-							Request: s3Testing.CreateRequest(nil, &awss3.GetBucketRequestPaymentOutput{Payer: awss3.PayerBucketOwner}),
-						}
+					s3Testing.WithGetRequestPayment(func(ctx context.Context, input *awss3.GetBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.GetBucketRequestPaymentOutput, error) {
+						return &awss3.GetBucketRequestPaymentOutput{Payer: awss3types.PayerBucketowner}, nil
+
 					}),
-					s3Testing.WithPutRequestPayment(func(input *awss3.PutBucketRequestPaymentInput) awss3.PutBucketRequestPaymentRequest {
-						return awss3.PutBucketRequestPaymentRequest{
-							Request: s3Testing.CreateRequest(errBoom, &awss3.PutBucketRequestPaymentOutput{}),
-						}
+					s3Testing.WithPutRequestPayment(func(ctx context.Context, input *awss3.PutBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.PutBucketRequestPaymentOutput, error) {
+						return nil, errBoom
 					}),
 				),
 				cr: s3Testing.Bucket(s3Testing.WithPayerConfig(&v1beta1.PaymentConfiguration{Payer: "Requester"})),
@@ -376,15 +358,12 @@ func TestUpdate(t *testing.T) {
 		"ValidInputUpdateNeededObserveFailed": {
 			args: args{
 				s3: s3Testing.Client(
-					s3Testing.WithGetRequestPayment(func(input *awss3.GetBucketRequestPaymentInput) awss3.GetBucketRequestPaymentRequest {
-						return awss3.GetBucketRequestPaymentRequest{
-							Request: s3Testing.CreateRequest(errBoom, &awss3.GetBucketRequestPaymentOutput{Payer: awss3.PayerBucketOwner}),
-						}
+					s3Testing.WithGetRequestPayment(func(ctx context.Context, input *awss3.GetBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.GetBucketRequestPaymentOutput, error) {
+						return nil, errBoom
+
 					}),
-					s3Testing.WithPutRequestPayment(func(input *awss3.PutBucketRequestPaymentInput) awss3.PutBucketRequestPaymentRequest {
-						return awss3.PutBucketRequestPaymentRequest{
-							Request: s3Testing.CreateRequest(nil, &awss3.PutBucketRequestPaymentOutput{}),
-						}
+					s3Testing.WithPutRequestPayment(func(ctx context.Context, input *awss3.PutBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.PutBucketRequestPaymentOutput, error) {
+						return &awss3.PutBucketRequestPaymentOutput{}, nil
 					}),
 				),
 				cr: s3Testing.Bucket(s3Testing.WithPayerConfig(&v1beta1.PaymentConfiguration{Payer: "Requester"})),
@@ -401,26 +380,22 @@ func TestUpdate(t *testing.T) {
 		"ValidInputDeleteNeededSuccess": {
 			args: args{
 				s3: s3Testing.Client(
-					s3Testing.WithDeleteSSE(func(input *awss3.DeleteBucketEncryptionInput) awss3.DeleteBucketEncryptionRequest {
-						return awss3.DeleteBucketEncryptionRequest{
-							Request: s3Testing.CreateRequest(nil, &awss3.DeleteBucketEncryptionOutput{}),
-						}
+					s3Testing.WithDeleteSSE(func(ctx context.Context, input *awss3.DeleteBucketEncryptionInput, opts []func(*awss3.Options)) (*awss3.DeleteBucketEncryptionOutput, error) {
+						return &awss3.DeleteBucketEncryptionOutput{}, nil
 					}),
-					s3Testing.WithGetSSE(func(input *awss3.GetBucketEncryptionInput) awss3.GetBucketEncryptionRequest {
-						return awss3.GetBucketEncryptionRequest{
-							Request: s3Testing.CreateRequest(nil, &awss3.GetBucketEncryptionOutput{
-								ServerSideEncryptionConfiguration: &awss3.ServerSideEncryptionConfiguration{
-									Rules: []awss3.ServerSideEncryptionRule{
-										{
-											ApplyServerSideEncryptionByDefault: &awss3.ServerSideEncryptionByDefault{
-												KMSMasterKeyID: aws.String("key-id"),
-												SSEAlgorithm:   awss3.ServerSideEncryptionAes256,
-											},
+					s3Testing.WithGetSSE(func(ctx context.Context, input *awss3.GetBucketEncryptionInput, opts []func(*awss3.Options)) (*awss3.GetBucketEncryptionOutput, error) {
+						return &awss3.GetBucketEncryptionOutput{
+							ServerSideEncryptionConfiguration: &awss3types.ServerSideEncryptionConfiguration{
+								Rules: []awss3types.ServerSideEncryptionRule{
+									{
+										ApplyServerSideEncryptionByDefault: &awss3types.ServerSideEncryptionByDefault{
+											KMSMasterKeyID: aws.String("key-id"),
+											SSEAlgorithm:   awss3types.ServerSideEncryptionAes256,
 										},
 									},
 								},
-							}),
-						}
+							},
+						}, nil
 					}),
 				),
 				cr: s3Testing.Bucket(s3Testing.WithSSEConfig(nil)),
@@ -436,26 +411,22 @@ func TestUpdate(t *testing.T) {
 		"ValidInputDeleteNeededFailed": {
 			args: args{
 				s3: s3Testing.Client(
-					s3Testing.WithDeleteSSE(func(input *awss3.DeleteBucketEncryptionInput) awss3.DeleteBucketEncryptionRequest {
-						return awss3.DeleteBucketEncryptionRequest{
-							Request: s3Testing.CreateRequest(errBoom, &awss3.DeleteBucketEncryptionOutput{}),
-						}
+					s3Testing.WithDeleteSSE(func(ctx context.Context, input *awss3.DeleteBucketEncryptionInput, opts []func(*awss3.Options)) (*awss3.DeleteBucketEncryptionOutput, error) {
+						return nil, errBoom
 					}),
-					s3Testing.WithGetSSE(func(input *awss3.GetBucketEncryptionInput) awss3.GetBucketEncryptionRequest {
-						return awss3.GetBucketEncryptionRequest{
-							Request: s3Testing.CreateRequest(nil, &awss3.GetBucketEncryptionOutput{
-								ServerSideEncryptionConfiguration: &awss3.ServerSideEncryptionConfiguration{
-									Rules: []awss3.ServerSideEncryptionRule{
-										{
-											ApplyServerSideEncryptionByDefault: &awss3.ServerSideEncryptionByDefault{
-												KMSMasterKeyID: aws.String("key-id"),
-												SSEAlgorithm:   awss3.ServerSideEncryptionAes256,
-											},
+					s3Testing.WithGetSSE(func(ctx context.Context, input *awss3.GetBucketEncryptionInput, opts []func(*awss3.Options)) (*awss3.GetBucketEncryptionOutput, error) {
+						return &awss3.GetBucketEncryptionOutput{
+							ServerSideEncryptionConfiguration: &awss3types.ServerSideEncryptionConfiguration{
+								Rules: []awss3types.ServerSideEncryptionRule{
+									{
+										ApplyServerSideEncryptionByDefault: &awss3types.ServerSideEncryptionByDefault{
+											KMSMasterKeyID: aws.String("key-id"),
+											SSEAlgorithm:   awss3types.ServerSideEncryptionAes256,
 										},
 									},
 								},
-							}),
-						}
+							},
+						}, nil
 					}),
 				),
 				cr: s3Testing.Bucket(s3Testing.WithSSEConfig(nil)),
@@ -471,26 +442,11 @@ func TestUpdate(t *testing.T) {
 		"ValidInputDeleteNeededObserveFailed": {
 			args: args{
 				s3: s3Testing.Client(
-					s3Testing.WithDeleteSSE(func(input *awss3.DeleteBucketEncryptionInput) awss3.DeleteBucketEncryptionRequest {
-						return awss3.DeleteBucketEncryptionRequest{
-							Request: s3Testing.CreateRequest(nil, &awss3.DeleteBucketEncryptionOutput{}),
-						}
+					s3Testing.WithDeleteSSE(func(ctx context.Context, input *awss3.DeleteBucketEncryptionInput, opts []func(*awss3.Options)) (*awss3.DeleteBucketEncryptionOutput, error) {
+						return &awss3.DeleteBucketEncryptionOutput{}, nil
 					}),
-					s3Testing.WithGetSSE(func(input *awss3.GetBucketEncryptionInput) awss3.GetBucketEncryptionRequest {
-						return awss3.GetBucketEncryptionRequest{
-							Request: s3Testing.CreateRequest(errBoom, &awss3.GetBucketEncryptionOutput{
-								ServerSideEncryptionConfiguration: &awss3.ServerSideEncryptionConfiguration{
-									Rules: []awss3.ServerSideEncryptionRule{
-										{
-											ApplyServerSideEncryptionByDefault: &awss3.ServerSideEncryptionByDefault{
-												KMSMasterKeyID: aws.String("key-id"),
-												SSEAlgorithm:   awss3.ServerSideEncryptionAes256,
-											},
-										},
-									},
-								},
-							}),
-						}
+					s3Testing.WithGetSSE(func(ctx context.Context, input *awss3.GetBucketEncryptionInput, opts []func(*awss3.Options)) (*awss3.GetBucketEncryptionOutput, error) {
+						return nil, errBoom
 					}),
 				),
 				cr: s3Testing.Bucket(s3Testing.WithSSEConfig(nil)),
@@ -538,10 +494,8 @@ func TestDelete(t *testing.T) {
 		"VaildInput": {
 			args: args{
 				s3: &fake.MockBucketClient{
-					MockDeleteBucketRequest: func(input *awss3.DeleteBucketInput) awss3.DeleteBucketRequest {
-						return awss3.DeleteBucketRequest{
-							Request: s3Testing.CreateRequest(nil, &awss3.DeleteBucketOutput{}),
-						}
+					MockDeleteBucket: func(ctx context.Context, input *awss3.DeleteBucketInput, opts []func(*awss3.Options)) (*awss3.DeleteBucketOutput, error) {
+						return &awss3.DeleteBucketOutput{}, nil
 					},
 				},
 				cr: s3Testing.Bucket(),
@@ -562,10 +516,8 @@ func TestDelete(t *testing.T) {
 		"ClientError": {
 			args: args{
 				s3: &fake.MockBucketClient{
-					MockDeleteBucketRequest: func(input *awss3.DeleteBucketInput) awss3.DeleteBucketRequest {
-						return awss3.DeleteBucketRequest{
-							Request: s3Testing.CreateRequest(errBoom, &awss3.DeleteBucketOutput{}),
-						}
+					MockDeleteBucket: func(ctx context.Context, input *awss3.DeleteBucketInput, opts []func(*awss3.Options)) (*awss3.DeleteBucketOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: s3Testing.Bucket(),
@@ -578,10 +530,8 @@ func TestDelete(t *testing.T) {
 		"ResourceDoesNotExist": {
 			args: args{
 				s3: &fake.MockBucketClient{
-					MockDeleteBucketRequest: func(input *awss3.DeleteBucketInput) awss3.DeleteBucketRequest {
-						return awss3.DeleteBucketRequest{
-							Request: s3Testing.CreateRequest(awss3types.NoSuchBucket{}, &awss3.DeleteBucketOutput{}),
-						}
+					MockDeleteBucket: func(ctx context.Context, input *awss3.DeleteBucketInput, opts []func(*awss3.Options)) (*awss3.DeleteBucketOutput, error) {
+						return nil, &awss3types.NoSuchBucket{}
 					},
 				},
 				cr: s3Testing.Bucket(),

@@ -96,13 +96,17 @@ github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v0.31.0 h1:53+EY9rDKKD
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v0.31.0/go.mod h1:I+GNxv9WaxS3zV7J30UVTMdTb2cyC3K8yrNWddmGoqc=
 github.com/aws/aws-sdk-go-v2/service/iam v0.31.0 h1:1MgHdHe1VMoputD7JA3q6CkfyULtwvXAjkeqOIjpJTM=
 github.com/aws/aws-sdk-go-v2/service/iam v0.31.0/go.mod h1:uqLp4cqedOQNNICBvmGhDLm9pJmN7E4gt0M0w5yFS2Y=
+github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v0.4.0 h1:osjGuGbk/aVW8u2yhOijPhxLU1ardwPDsga5HHyQMbw=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v0.4.0/go.mod h1:Pjv1Z+nRaluwWCMuB6OQeqGRyiGk2WTrKG8RHs5wZug=
+github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v0.2.0 h1:xeqwfWQGg3hjLMs61PlixdxhU+qqrd7S50j/3kV1j/0=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v0.2.0/go.mod h1:Ef71w/O9Ulhxj8gD9Pq2S0lXMvyNzFLMRuIxWpDRQxk=
+github.com/aws/aws-sdk-go-v2/service/internal/s3shared v0.4.0 h1:OiRO8lneLP7wJ80dqAwHpIRcMInUO04HzcQUVtPwk3U=
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v0.4.0/go.mod h1:fMsE4Rr6OkxQUmZxi4Amj8LS0BakLZw05Rog0jYStQM=
 github.com/aws/aws-sdk-go-v2/service/rds v0.31.0/go.mod h1:QR1y6Z2xttVeN5/Ka1qI5nNy5QNh3iMHBEx97R+EP3w=
 github.com/aws/aws-sdk-go-v2/service/redshift v0.31.0/go.mod h1:DaRL7Eo90Yv6+zjBaIxQGik12OSLVxYTSCveyQhUjSw=
 github.com/aws/aws-sdk-go-v2/service/route53 v0.31.0 h1:0qVkvLk5bfNwpV7jbWFeTNzwibf5UQox18t4OZRSGuM=
 github.com/aws/aws-sdk-go-v2/service/route53 v0.31.0/go.mod h1:pAjhJw+tl3oKqX/SzArjU2KSKZs3qLzfG39rqAxM9w8=
+github.com/aws/aws-sdk-go-v2/service/s3 v0.31.0 h1:KDBpodyszhL8F83QYv36qBzDj99oPlt1coZNGSFKTXU=
 github.com/aws/aws-sdk-go-v2/service/s3 v0.31.0/go.mod h1:KnvsmhsdHaJJZatMeNscBKaEmz0V5oXe1N5ZaLmGDBs=
 github.com/aws/aws-sdk-go-v2/service/sns v0.31.0/go.mod h1:z2sDp3+VSVK29ymUSY23ECKpKgUjePTDoBGDWa2s8t8=
 github.com/aws/aws-sdk-go-v2/service/sqs v0.31.0 h1:KWDgaC5RRb8ind8+b1+EveN7ywQ+2+KgQP8UJN9ao/c=

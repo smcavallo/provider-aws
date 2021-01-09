@@ -18,11 +18,10 @@ package bucketpolicy
 
 import (
 	"context"
-	"net/http"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/smithy-go"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 
@@ -108,12 +107,10 @@ func TestObserve(t *testing.T) {
 		"ValidInput": {
 			args: args{
 				s3: &fake.MockBucketPolicyClient{
-					MockGetBucketPolicyRequest: func(input *awss3.GetBucketPolicyInput) awss3.GetBucketPolicyRequest {
-						return awss3.GetBucketPolicyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awss3.GetBucketPolicyOutput{
-								Policy: &policy,
-							}},
-						}
+					MockGetBucketPolicy: func(ctx context.Context, input *awss3.GetBucketPolicyInput, opts []func(*awss3.Options)) (*awss3.GetBucketPolicyOutput, error) {
+						return &awss3.GetBucketPolicyOutput{
+							Policy: &policy,
+						}, nil
 					},
 				},
 				cr: bucketPolicy(withPolicy(&params)),
@@ -139,10 +136,8 @@ func TestObserve(t *testing.T) {
 		"ClientError": {
 			args: args{
 				s3: &fake.MockBucketPolicyClient{
-					MockGetBucketPolicyRequest: func(input *awss3.GetBucketPolicyInput) awss3.GetBucketPolicyRequest {
-						return awss3.GetBucketPolicyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: errBoom},
-						}
+					MockGetBucketPolicy: func(ctx context.Context, input *awss3.GetBucketPolicyInput, opts []func(*awss3.Options)) (*awss3.GetBucketPolicyOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: bucketPolicy(withPolicy(&params)),
@@ -155,10 +150,8 @@ func TestObserve(t *testing.T) {
 		"ResourceDoesNotExist": {
 			args: args{
 				s3: &fake.MockBucketPolicyClient{
-					MockGetBucketPolicyRequest: func(input *awss3.GetBucketPolicyInput) awss3.GetBucketPolicyRequest {
-						return awss3.GetBucketPolicyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: smithy.GenericAPIError{Code: "NoSuchBucketPolicy"}},
-						}
+					MockGetBucketPolicy: func(ctx context.Context, input *awss3.GetBucketPolicyInput, opts []func(*awss3.Options)) (*awss3.GetBucketPolicyOutput, error) {
+						return nil, &smithy.GenericAPIError{Code: "NoSuchBucketPolicy"}
 					},
 				},
 				cr: bucketPolicy(),
@@ -202,10 +195,8 @@ func TestCreate(t *testing.T) {
 		"VaildInput": {
 			args: args{
 				s3: &fake.MockBucketPolicyClient{
-					MockPutBucketPolicyRequest: func(input *awss3.PutBucketPolicyInput) awss3.PutBucketPolicyRequest {
-						return awss3.PutBucketPolicyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awss3.PutBucketPolicyOutput{}},
-						}
+					MockPutBucketPolicy: func(ctx context.Context, input *awss3.PutBucketPolicyInput, opts []func(*awss3.Options)) (*awss3.PutBucketPolicyOutput, error) {
+						return &awss3.PutBucketPolicyOutput{}, nil
 					},
 				},
 				cr: bucketPolicy(withPolicy(&params)),
@@ -228,10 +219,8 @@ func TestCreate(t *testing.T) {
 		"ClientError": {
 			args: args{
 				s3: &fake.MockBucketPolicyClient{
-					MockPutBucketPolicyRequest: func(input *awss3.PutBucketPolicyInput) awss3.PutBucketPolicyRequest {
-						return awss3.PutBucketPolicyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: errBoom},
-						}
+					MockPutBucketPolicy: func(ctx context.Context, input *awss3.PutBucketPolicyInput, opts []func(*awss3.Options)) (*awss3.PutBucketPolicyOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: bucketPolicy(withPolicy(&params)),
@@ -278,10 +267,8 @@ func TestUpdate(t *testing.T) {
 		"VaildInput": {
 			args: args{
 				s3: &fake.MockBucketPolicyClient{
-					MockPutBucketPolicyRequest: func(input *awss3.PutBucketPolicyInput) awss3.PutBucketPolicyRequest {
-						return awss3.PutBucketPolicyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awss3.PutBucketPolicyOutput{}},
-						}
+					MockPutBucketPolicy: func(ctx context.Context, input *awss3.PutBucketPolicyInput, opts []func(*awss3.Options)) (*awss3.PutBucketPolicyOutput, error) {
+						return &awss3.PutBucketPolicyOutput{}, nil
 					},
 				},
 				cr: bucketPolicy(withPolicy(&params)),
@@ -324,10 +311,8 @@ func TestDelete(t *testing.T) {
 		"VaildInput": {
 			args: args{
 				s3: &fake.MockBucketPolicyClient{
-					MockDeleteBucketPolicyRequest: func(input *awss3.DeleteBucketPolicyInput) awss3.DeleteBucketPolicyRequest {
-						return awss3.DeleteBucketPolicyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awss3.DeleteBucketPolicyOutput{}},
-						}
+					MockDeleteBucketPolicy: func(ctx context.Context, input *awss3.DeleteBucketPolicyInput, opts []func(*awss3.Options)) (*awss3.DeleteBucketPolicyOutput, error) {
+						return &awss3.DeleteBucketPolicyOutput{}, nil
 					},
 				},
 				cr: bucketPolicy(withPolicy(&params)),
@@ -349,10 +334,8 @@ func TestDelete(t *testing.T) {
 		"ClientError": {
 			args: args{
 				s3: &fake.MockBucketPolicyClient{
-					MockDeleteBucketPolicyRequest: func(input *awss3.DeleteBucketPolicyInput) awss3.DeleteBucketPolicyRequest {
-						return awss3.DeleteBucketPolicyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: errBoom},
-						}
+					MockDeleteBucketPolicy: func(ctx context.Context, input *awss3.DeleteBucketPolicyInput, opts []func(*awss3.Options)) (*awss3.DeleteBucketPolicyOutput, error) {
+						return nil, errBoom
 					},
 				},
 				cr: bucketPolicy(withPolicy(&params)),
@@ -366,10 +349,8 @@ func TestDelete(t *testing.T) {
 		"ResourceDoesNotExist": {
 			args: args{
 				s3: &fake.MockBucketPolicyClient{
-					MockDeleteBucketPolicyRequest: func(input *awss3.DeleteBucketPolicyInput) awss3.DeleteBucketPolicyRequest {
-						return awss3.DeleteBucketPolicyRequest{
-							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Error: smithy.GenericAPIError{Code: "NoSuchBucketPolicy"}},
-						}
+					MockDeleteBucketPolicy: func(ctx context.Context, input *awss3.DeleteBucketPolicyInput, opts []func(*awss3.Options)) (*awss3.DeleteBucketPolicyOutput, error) {
+						return nil, &smithy.GenericAPIError{Code: "NoSuchBucketPolicy"}
 					},
 				},
 				cr: bucketPolicy(withPolicy(&params)),

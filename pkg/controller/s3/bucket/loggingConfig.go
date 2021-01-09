@@ -22,6 +22,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	awss3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/go-cmp/cmp"
 
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
@@ -44,7 +45,7 @@ type LoggingConfigurationClient struct {
 
 // LateInitialize is responsible for initializing the resource based on the external value
 func (in *LoggingConfigurationClient) LateInitialize(ctx context.Context, bucket *v1beta1.Bucket) error {
-	external, err := in.client.GetBucketLoggingRequest(&awss3.GetBucketLoggingInput{Bucket: awsclient.String(meta.GetExternalName(bucket))}).Send(ctx)
+	external, err := in.client.GetBucketLogging(ctx, &awss3.GetBucketLoggingInput{Bucket: awsclient.String(meta.GetExternalName(bucket))})
 	if err != nil {
 		return awsclient.Wrap(err, loggingGetFailed)
 	}
@@ -87,27 +88,27 @@ func NewLoggingConfigurationClient(client s3.BucketClient) *LoggingConfiguration
 }
 
 // GenerateAWSLogging creates an S3 logging enabled struct from the local logging configuration
-func GenerateAWSLogging(local *v1beta1.LoggingConfiguration) *awss3.LoggingEnabled {
+func GenerateAWSLogging(local *v1beta1.LoggingConfiguration) *awss3types.LoggingEnabled {
 	if local == nil {
 		return nil
 	}
-	output := awss3.LoggingEnabled{
+	output := awss3types.LoggingEnabled{
 		TargetBucket: local.TargetBucket,
 		TargetPrefix: awsclient.String(local.TargetPrefix),
 	}
 	if local.TargetGrants != nil {
-		output.TargetGrants = make([]awss3.TargetGrant, len(local.TargetGrants))
+		output.TargetGrants = make([]awss3types.TargetGrant, len(local.TargetGrants))
 	}
 	for i := range local.TargetGrants {
-		target := awss3.TargetGrant{
-			Grantee: &awss3.Grantee{
+		target := awss3types.TargetGrant{
+			Grantee: &awss3types.Grantee{
 				DisplayName:  local.TargetGrants[i].Grantee.DisplayName,
 				EmailAddress: local.TargetGrants[i].Grantee.EmailAddress,
 				ID:           local.TargetGrants[i].Grantee.ID,
-				Type:         awss3.Type(local.TargetGrants[i].Grantee.Type),
+				Type:         awss3types.Type(local.TargetGrants[i].Grantee.Type),
 				URI:          local.TargetGrants[i].Grantee.URI,
 			},
-			Permission: awss3.BucketLogsPermission(local.TargetGrants[i].Permission),
+			Permission: awss3types.BucketLogsPermission(local.TargetGrants[i].Permission),
 		}
 
 		output.TargetGrants[i] = target
@@ -117,7 +118,7 @@ func GenerateAWSLogging(local *v1beta1.LoggingConfiguration) *awss3.LoggingEnabl
 
 // Observe checks if the resource exists and if it matches the local configuration
 func (in *LoggingConfigurationClient) Observe(ctx context.Context, bucket *v1beta1.Bucket) (ResourceStatus, error) {
-	external, err := in.client.GetBucketLoggingRequest(&awss3.GetBucketLoggingInput{Bucket: awsclient.String(meta.GetExternalName(bucket))}).Send(ctx)
+	external, err := in.client.GetBucketLogging(ctx, &awss3.GetBucketLoggingInput{Bucket: awsclient.String(meta.GetExternalName(bucket))})
 	if err != nil {
 		return NeedsUpdate, awsclient.Wrap(err, loggingGetFailed)
 	}
@@ -132,22 +133,22 @@ func (in *LoggingConfigurationClient) Observe(ctx context.Context, bucket *v1bet
 func GeneratePutBucketLoggingInput(name string, config *v1beta1.LoggingConfiguration) *awss3.PutBucketLoggingInput {
 	bci := &awss3.PutBucketLoggingInput{
 		Bucket: awsclient.String(name),
-		BucketLoggingStatus: &awss3.BucketLoggingStatus{LoggingEnabled: &awss3.LoggingEnabled{
+		BucketLoggingStatus: &awss3types.BucketLoggingStatus{LoggingEnabled: &awss3types.LoggingEnabled{
 			TargetBucket: config.TargetBucket,
-			TargetGrants: make([]awss3.TargetGrant, 0),
+			TargetGrants: make([]awss3types.TargetGrant, 0),
 			TargetPrefix: awsclient.String(config.TargetPrefix),
 		}},
 	}
 	for _, grant := range config.TargetGrants {
-		bci.BucketLoggingStatus.LoggingEnabled.TargetGrants = append(bci.BucketLoggingStatus.LoggingEnabled.TargetGrants, awss3.TargetGrant{
-			Grantee: &awss3.Grantee{
+		bci.BucketLoggingStatus.LoggingEnabled.TargetGrants = append(bci.BucketLoggingStatus.LoggingEnabled.TargetGrants, awss3types.TargetGrant{
+			Grantee: &awss3types.Grantee{
 				DisplayName:  grant.Grantee.DisplayName,
 				EmailAddress: grant.Grantee.EmailAddress,
 				ID:           grant.Grantee.ID,
-				Type:         awss3.Type(grant.Grantee.Type),
+				Type:         awss3types.Type(grant.Grantee.Type),
 				URI:          grant.Grantee.URI,
 			},
-			Permission: awss3.BucketLogsPermission(grant.Permission),
+			Permission: awss3types.BucketLogsPermission(grant.Permission),
 		})
 	}
 	return bci
@@ -159,7 +160,7 @@ func (in *LoggingConfigurationClient) CreateOrUpdate(ctx context.Context, bucket
 		return nil
 	}
 	input := GeneratePutBucketLoggingInput(meta.GetExternalName(bucket), bucket.Spec.ForProvider.LoggingConfiguration)
-	_, err := in.client.PutBucketLoggingRequest(input).Send(ctx)
+	_, err := in.client.PutBucketLogging(ctx, input)
 	return awsclient.Wrap(err, loggingPutFailed)
 }
 

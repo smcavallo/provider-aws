@@ -20,6 +20,7 @@ import (
 	"context"
 
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	awss3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/crossplane/crossplane-runtime/pkg/meta"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 	"github.com/google/go-cmp/cmp"
@@ -53,7 +54,7 @@ func NewTaggingConfigurationClient(client s3.BucketClient) *TaggingConfiguration
 
 // Observe checks if the resource exists and if it matches the local configuration
 func (in *TaggingConfigurationClient) Observe(ctx context.Context, bucket *v1beta1.Bucket) (ResourceStatus, error) {
-	external, err := in.client.GetBucketTaggingRequest(&awss3.GetBucketTaggingInput{Bucket: awsclient.String(meta.GetExternalName(bucket))}).Send(ctx)
+	external, err := in.client.GetBucketTagging(ctx, &awss3.GetBucketTaggingInput{Bucket: awsclient.String(meta.GetExternalName(bucket))})
 	config := bucket.Spec.ForProvider.BucketTagging
 	if err != nil {
 		if s3.TaggingNotFound(err) && config == nil {
@@ -75,11 +76,11 @@ func (in *TaggingConfigurationClient) Observe(ctx context.Context, bucket *v1bet
 }
 
 // GenerateTagging creates the Tagging for the AWS SDK
-func GenerateTagging(config *v1beta1.Tagging) *awss3.Tagging {
+func GenerateTagging(config *v1beta1.Tagging) *awss3types.Tagging {
 	if config == nil || config.TagSet == nil {
-		return &awss3.Tagging{TagSet: make([]awss3.Tag, 0)}
+		return &awss3types.Tagging{TagSet: make([]awss3types.Tag, 0)}
 	}
-	conf := &awss3.Tagging{TagSet: s3.CopyTags(config.TagSet)}
+	conf := &awss3types.Tagging{TagSet: s3.CopyTags(config.TagSet)}
 	return conf
 }
 
@@ -97,16 +98,16 @@ func (in *TaggingConfigurationClient) CreateOrUpdate(ctx context.Context, bucket
 		return nil
 	}
 	input := GeneratePutBucketTagging(meta.GetExternalName(bucket), bucket.Spec.ForProvider.BucketTagging)
-	_, err := in.client.PutBucketTaggingRequest(input).Send(ctx)
+	_, err := in.client.PutBucketTagging(ctx, input)
 	return awsclient.Wrap(err, taggingPutFailed)
 }
 
 // Delete creates the request to delete the resource on AWS or set it to the default value.
 func (in *TaggingConfigurationClient) Delete(ctx context.Context, bucket *v1beta1.Bucket) error {
-	_, err := in.client.DeleteBucketTaggingRequest(
+	_, err := in.client.DeleteBucketTagging(ctx,
 		&awss3.DeleteBucketTaggingInput{
 			Bucket: awsclient.String(meta.GetExternalName(bucket)),
 		},
-	).Send(ctx)
+	)
 	return awsclient.Wrap(err, taggingDeleteFailed)
 }

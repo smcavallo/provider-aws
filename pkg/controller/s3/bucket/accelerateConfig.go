@@ -60,7 +60,7 @@ func (in *AccelerateConfigurationClient) LateInitialize(ctx context.Context, buc
 	}
 	bucket.Spec.ForProvider.AccelerateConfiguration.Status = awsclient.LateInitializeString(
 		bucket.Spec.ForProvider.AccelerateConfiguration.Status,
-		awsclient.String(string(external.GetBucketAccelerateConfigurationOutput.Status)))
+		awsclient.String(string(external.Status)))
 	return nil
 }
 

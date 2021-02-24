@@ -314,7 +314,7 @@ spec:
                     properties:
                       desiredSize:
                         description: The current number of worker nodes for the managed node group.
-                        format: int64
+                        format: int32
                         type: integer
                     type: object
                   status:

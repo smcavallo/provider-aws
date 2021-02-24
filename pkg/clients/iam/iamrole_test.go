@@ -292,10 +292,10 @@ func TestIsRoleUpToDate(t *testing.T) {
 func TestDiffIAMTags(t *testing.T) {
 	type args struct {
 		local  []v1beta1.Tag
-		remote []iam.Tag
+		remote []iamtypes.Tag
 	}
 	type want struct {
-		add    []iam.Tag
+		add    []iamtypes.Tag
 		remove []string
 	}
 	cases := map[string]struct {
@@ -309,7 +309,7 @@ func TestDiffIAMTags(t *testing.T) {
 				},
 			},
 			want: want{
-				add: []iam.Tag{
+				add: []iamtypes.Tag{
 					{Key: aws.String("key"), Value: aws.String("val")},
 				},
 			},
@@ -321,12 +321,12 @@ func TestDiffIAMTags(t *testing.T) {
 					{Key: "key1", Value: "val1"},
 					{Key: "key2", Value: "val2"},
 				},
-				remote: []iam.Tag{
+				remote: []iamtypes.Tag{
 					{Key: aws.String("key"), Value: aws.String("val")},
 				},
 			},
 			want: want{
-				add: []iam.Tag{
+				add: []iamtypes.Tag{
 					{Key: aws.String("key1"), Value: aws.String("val1")},
 					{Key: aws.String("key2"), Value: aws.String("val2")},
 				},
@@ -339,14 +339,14 @@ func TestDiffIAMTags(t *testing.T) {
 					{Key: "key1", Value: "val1"},
 					{Key: "key2", Value: "val2"},
 				},
-				remote: []iam.Tag{
+				remote: []iamtypes.Tag{
 					{Key: aws.String("key"), Value: aws.String("val")},
 					{Key: aws.String("key1"), Value: aws.String("val1")},
 					{Key: aws.String("key2"), Value: aws.String("val2")},
 				},
 			},
 			want: want{
-				add: []iam.Tag{
+				add: []iamtypes.Tag{
 					{Key: aws.String("key"), Value: aws.String("different")},
 				},
 				remove: []string{"key"},
@@ -354,7 +354,7 @@ func TestDiffIAMTags(t *testing.T) {
 		},
 		"RemoveAll": {
 			args: args{
-				remote: []iam.Tag{
+				remote: []iamtypes.Tag{
 					{Key: aws.String("key"), Value: aws.String("val")},
 					{Key: aws.String("key1"), Value: aws.String("val1")},
 					{Key: aws.String("key2"), Value: aws.String("val2")},
@@ -368,7 +368,7 @@ func TestDiffIAMTags(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			tagCmp := cmpopts.SortSlices(func(i, j iam.Tag) bool {
+			tagCmp := cmpopts.SortSlices(func(i, j iamtypes.Tag) bool {
 				return aws.StringValue(i.Key) < aws.StringValue(j.Key)
 			})
 			add, remove := DiffIAMTags(tc.args.local, tc.args.remote)

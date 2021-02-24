@@ -28,7 +28,7 @@ import (
 
 	"github.com/crossplane/provider-aws/apis/s3/v1beta1"
 	awsclient "github.com/crossplane/provider-aws/pkg/clients"
-	clients3 "github.com/crossplane/provider-aws/pkg/clients/s3"
+	clientss3 "github.com/crossplane/provider-aws/pkg/clients/s3"
 	"github.com/crossplane/provider-aws/pkg/clients/s3/fake"
 	s3Testing "github.com/crossplane/provider-aws/pkg/controller/s3/testing"
 )

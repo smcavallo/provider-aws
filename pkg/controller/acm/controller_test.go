@@ -40,7 +40,7 @@ import (
 
 var (
 	// an arbitrary managed resource
-	unexpectedItem  resource.Managed
+	unexpectedItem resource.Managed
 	domainName     = "some.site"
 	certificateArn = "somearn"
 

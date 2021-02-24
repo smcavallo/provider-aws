@@ -86,7 +86,7 @@ func TestObserve(t *testing.T) {
 						return &awsacmpca.ListPermissionsOutput{
 							NextToken: aws.String(nextToken),
 							Permissions: []awsacmpcatypes.Permission{{
-								Actions:                 []awsacmpcatypes.ActionType{awsacmpcatypes.ActionTypeIssuecertificate, awsacmpcatypes.ActionTypeGetcertificate, awsacmpcatypes.ActionTypeListpermissions},
+								Actions:                 []awsacmpcatypes.ActionType{awsacmpcatypes.ActionTypeIssueCertificate, awsacmpcatypes.ActionTypeGetCertificate, awsacmpcatypes.ActionTypeListPermissions},
 								CertificateAuthorityArn: aws.String(certificateAuthorityArn),
 							}},
 						}, nil

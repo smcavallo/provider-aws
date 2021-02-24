@@ -185,10 +185,7 @@ func CreatePatch(target *v1alpha1.ClusterParameters, in *redshifttypes.Cluster) 
 // IsNotFound helper function to test for ErrCodeClusterNotFoundFault error
 func IsNotFound(err error) bool {
 	var cnff *redshifttypes.ClusterNotFoundFault
-	if errors.As(err, &cnff) {
-		return true
-	}
-	return false
+	return errors.As(err, &cnff)
 }
 
 // GenerateCreateClusterInput from RedshiftSpec

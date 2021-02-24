@@ -189,9 +189,12 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 	if _, err := e.client.CreateTags(ctx, &awsec2.CreateTagsInput{
 		Resources: []string{meta.GetExternalName(cr)},
 		Tags:      v1beta1.GenerateEC2Tags(cr.Spec.ForProvider.Tags),
+	}); err != nil {
+		return managed.ExternalUpdate{}, awsclient.Wrap(err, errCreateTags)
 	}
 	return managed.ExternalUpdate{}, nil
 }
+
 func (e *external) Delete(ctx context.Context, mgd resource.Managed) error {
 	cr, ok := mgd.(*v1alpha1.ElasticIP)
 	if !ok {

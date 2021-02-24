@@ -23,7 +23,7 @@ import (
 	elb "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 )
 
-//MockClient is a mock of the elb client
+// MockClient is a mock of the elb client
 type MockClient struct {
 	MockDescribeLoadBalancers                   func(ctx context.Context, input *elb.DescribeLoadBalancersInput, opts []func(*elb.Options)) (*elb.DescribeLoadBalancersOutput, error)
 	MockCreateLoadBalancer                      func(ctx context.Context, input *elb.CreateLoadBalancerInput, opts []func(*elb.Options)) (*elb.CreateLoadBalancerOutput, error)

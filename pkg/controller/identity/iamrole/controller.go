@@ -164,18 +164,18 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 
 	add, remove := iam.DiffIAMTags(cr.Spec.ForProvider.Tags, observed.Role.Tags)
 	if len(remove) != 0 {
-		if _, err := e.client.UntagRoleRequest(&awsiam.UntagRoleInput{
+		if _, err := e.client.UntagRole(ctx, &awsiam.UntagRoleInput{
 			RoleName: aws.String(meta.GetExternalName(cr)),
 			TagKeys:  remove,
-		}).Send(ctx); err != nil {
+		}); err != nil {
 			return managed.ExternalUpdate{}, awsclient.Wrap(err, "cannot untag")
 		}
 	}
 	if len(add) != 0 {
-		if _, err := e.client.TagRoleRequest(&awsiam.TagRoleInput{
+		if _, err := e.client.TagRole(ctx, &awsiam.TagRoleInput{
 			RoleName: aws.String(meta.GetExternalName(cr)),
 			Tags:     add,
-		}).Send(ctx); err != nil {
+		}); err != nil {
 			return managed.ExternalUpdate{}, awsclient.Wrap(err, "cannot tag")
 		}
 	}

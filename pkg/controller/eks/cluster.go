@@ -22,7 +22,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -78,7 +77,7 @@ func SetupCluster(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) 
 type connector struct {
 	kube           client.Client
 	newClientFn    func(config aws.Config) eks.Client
-	newSTSClientFn func(sess *session.Session) eks.STSClient
+	newSTSClientFn func(config aws.Config) eks.STSClient
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
@@ -87,11 +86,10 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		return nil, errors.New(errNotEKSCluster)
 	}
 	cfg, err := awsclient.GetConfig(ctx, c.kube, mg, aws.ToString(cr.Spec.ForProvider.Region))
-	sess, err := awsclient.GetConfigV1(ctx, c.kube, mg, aws.ToString(cr.Spec.ForProvider.Region))
 	if err != nil {
 		return nil, err
 	}
-	return &external{client: c.newClientFn(*cfg), sts: c.newSTSClientFn(sess), kube: c.kube}, nil
+	return &external{client: c.newClientFn(*cfg), sts: c.newSTSClientFn(*cfg), kube: c.kube}, nil
 }
 
 type external struct {
@@ -138,7 +136,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	return managed.ExternalObservation{
 		ResourceExists:    true,
 		ResourceUpToDate:  upToDate,
-		ConnectionDetails: eks.GetConnectionDetails(rsp.Cluster, e.sts),
+		ConnectionDetails: eks.GetConnectionDetails(ctx, rsp.Cluster, e.sts),
 	}, nil
 }
 

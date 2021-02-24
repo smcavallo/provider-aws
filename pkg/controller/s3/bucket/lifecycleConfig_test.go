@@ -94,7 +94,7 @@ func generateAWSLifecycle(sortTag bool) *s3types.BucketLifecycleConfiguration {
 					ExpiredObjectDeleteMarker: marker,
 				},
 				Filter: &s3types.LifecycleRuleFilterMemberAnd{
-					s3types.LifecycleRuleAndOperator{
+					Value: s3types.LifecycleRuleAndOperator{
 						Prefix: awsclient.String(prefix),
 						Tags:   awsTags,
 					},

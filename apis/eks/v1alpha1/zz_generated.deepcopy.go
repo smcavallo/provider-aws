@@ -524,7 +524,7 @@ func (in *NodeGroupScalingConfigStatus) DeepCopyInto(out *NodeGroupScalingConfig
 	*out = *in
 	if in.DesiredSize != nil {
 		in, out := &in.DesiredSize, &out.DesiredSize
-		*out = new(int64)
+		*out = new(int32)
 		**out = **in
 	}
 }

@@ -297,6 +297,9 @@ func UsePodServiceAccountV1(ctx context.Context, _ []byte, mg resource.Managed, 
 		return nil, errors.Wrap(err, "failed to load default AWS config")
 	}
 	v2creds, err := cfg.Credentials.Retrieve(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to retrieve credentials")
+	}
 	v1creds := credentialsv1.NewStaticCredentials(
 		v2creds.AccessKeyID,
 		v2creds.SecretAccessKey,
@@ -373,6 +376,7 @@ func StringValue(v *string) string {
 	return aws.ToString(v)
 }
 
+// BoolValue calls underlying aws ToBool
 func BoolValue(v *bool) bool {
 	return aws.ToBool(v)
 }
@@ -483,7 +487,7 @@ func LateInitializeIntPtr(in *int, from *int64) *int {
 	return nil
 }
 
-// LateInitializeInt32Ptr returns in if it's non-nil, otherwise returns from
+// LateInitializeIntFrom32Ptr returns in if it's non-nil, otherwise returns from
 // which is the backup for the cases in is nil.
 func LateInitializeIntFrom32Ptr(in *int, from *int32) *int {
 	if in != nil {
@@ -526,12 +530,6 @@ func Bool(v bool, o ...FieldOption) *bool {
 		return nil
 	}
 	return aws.Bool(v)
-}
-
-// BoolValue returns the value of the bool pointer passed in or
-// false if the pointer is nil.
-func BoolValue(v *bool) bool {
-	return aws.BoolValue(v)
 }
 
 // LateInitializeBoolPtr returns in if it's non-nil, otherwise returns from
@@ -630,9 +628,14 @@ func CleanError(err error) error {
 	if err == nil {
 		return err
 	}
-	if awsErr, ok := err.(awserr.Error); ok {
-		return awserr.New(awsErr.Code(), awsErr.Message(), nil)
-	}
+	// TODO cvodak revisit this
+	// var re *awshttp.ResponseError
+	// if errors.As(err, &re) {
+	//	log.Printf("requestID: %s, error: %v", re.ServiceRequestID(), re.Unwrap());
+	//  }
+	// if awsErr, ok := err.(awserr.Error); ok {
+	//	return awserr.New(awsErr.Code(), awsErr.Message(), nil)
+	//}
 	return err
 }
 

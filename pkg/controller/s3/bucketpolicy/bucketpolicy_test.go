@@ -433,7 +433,7 @@ func TestFormat(t *testing.T) {
 			if diff := cmp.Diff(tc.want.err, err, test.EquateErrors()); diff != "" {
 				t.Errorf("r: -want, +got:\n%s", diff)
 			}
-			if diff := cmp.Diff(tc.want.str, aws.StringValue(str)); diff != "" {
+			if diff := cmp.Diff(tc.want.str, awsclient.StringValue(str)); diff != "" {
 				t.Errorf("r: -want, +got:\n%s", diff)
 			}
 		})

@@ -47,10 +47,7 @@ func NewClient(cfg aws.Config) Client {
 // IsDBSubnetGroupNotFoundErr returns true if the error is because the item doesn't exist
 func IsDBSubnetGroupNotFoundErr(err error) bool {
 	var nff *rdstypes.DBSubnetGroupNotFoundFault
-	if errors.As(err, &nff) {
-		return true
-	}
-	return false
+	return errors.As(err, &nff)
 }
 
 // IsDBSubnetGroupUpToDate checks whether there is a change in any of the modifiable fields.

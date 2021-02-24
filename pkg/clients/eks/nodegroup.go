@@ -17,6 +17,7 @@ limitations under the License.
 package eks
 
 import (
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/google/go-cmp/cmp"
@@ -24,15 +25,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/crossplane/provider-aws/apis/eks/v1alpha1"
-	aws "github.com/crossplane/provider-aws/pkg/clients"
-	awsclients "github.com/crossplane/provider-aws/pkg/clients"
+	awsclient "github.com/crossplane/provider-aws/pkg/clients"
 )
 
 // GenerateCreateNodeGroupInput from NodeGroupParameters.
 func GenerateCreateNodeGroupInput(name string, p *v1alpha1.NodeGroupParameters) *eks.CreateNodegroupInput {
 	c := &eks.CreateNodegroupInput{
 		NodegroupName:  &name,
-		AmiType:        ekstypes.AMITypes(aws.StringValue(p.AMIType)),
+		AmiType:        ekstypes.AMITypes(awsclient.StringValue(p.AMIType)),
 		ClusterName:    &p.ClusterName,
 		DiskSize:       p.DiskSize,
 		InstanceTypes:  p.InstanceTypes,
@@ -75,7 +75,7 @@ func GenerateUpdateNodeGroupConfigInput(name string, p *v1alpha1.NodeGroupParame
 	}
 
 	if len(p.Labels) > 0 {
-		addOrModify, remove := aws.DiffLabels(p.Labels, ng.Labels)
+		addOrModify, remove := awsclient.DiffLabels(p.Labels, ng.Labels)
 		u.Labels = &ekstypes.UpdateLabelsPayload{
 			AddOrUpdateLabels: addOrModify,
 			RemoveLabels:      remove,
@@ -92,10 +92,10 @@ func GenerateUpdateNodeGroupConfigInput(name string, p *v1alpha1.NodeGroupParame
 		// current observed desiredSize, or the min/max if observed is out of bounds.
 		if p.ScalingConfig.DesiredSize == nil {
 			// The min/max size set the floor/ceiling for the desiredSize
-			switch desiredSizeVal := awsclients.Int64Value(ng.ScalingConfig.DesiredSize); {
-			case desiredSizeVal < awsclients.Int64Value(p.ScalingConfig.MinSize):
+			switch desiredSizeVal := aws.ToInt32(ng.ScalingConfig.DesiredSize); {
+			case desiredSizeVal < aws.ToInt32(p.ScalingConfig.MinSize):
 				u.ScalingConfig.DesiredSize = p.ScalingConfig.MinSize
-			case desiredSizeVal > awsclients.Int64Value(p.ScalingConfig.MaxSize):
+			case desiredSizeVal > aws.ToInt32(p.ScalingConfig.MaxSize):
 				u.ScalingConfig.DesiredSize = p.ScalingConfig.MaxSize
 			default:
 				u.ScalingConfig.DesiredSize = ng.ScalingConfig.DesiredSize
@@ -112,7 +112,7 @@ func GenerateNodeGroupObservation(ng *ekstypes.Nodegroup) v1alpha1.NodeGroupObse
 		return v1alpha1.NodeGroupObservation{}
 	}
 	o := v1alpha1.NodeGroupObservation{
-		NodeGroupArn: awsclients.StringValue(ng.NodegroupArn),
+		NodeGroupArn: awsclient.StringValue(ng.NodegroupArn),
 		Status:       v1alpha1.NodeGroupStatusType(ng.Status),
 	}
 	if ng.CreatedAt != nil {
@@ -125,7 +125,7 @@ func GenerateNodeGroupObservation(ng *ekstypes.Nodegroup) v1alpha1.NodeGroupObse
 		for c, i := range ng.Health.Issues {
 			o.Health.Issues[c] = v1alpha1.Issue{
 				Code:        string(i.Code),
-				Message:     aws.StringValue(i.Message),
+				Message:     awsclient.StringValue(i.Message),
 				ResourceIDs: i.ResourceIds,
 			}
 		}
@@ -135,12 +135,12 @@ func GenerateNodeGroupObservation(ng *ekstypes.Nodegroup) v1alpha1.NodeGroupObse
 	}
 	if ng.Resources != nil {
 		o.Resources = v1alpha1.NodeGroupResources{
-			RemoteAccessSecurityGroup: aws.StringValue(ng.Resources.RemoteAccessSecurityGroup),
+			RemoteAccessSecurityGroup: awsclient.StringValue(ng.Resources.RemoteAccessSecurityGroup),
 		}
 		if len(ng.Resources.AutoScalingGroups) > 0 {
 			asg := make([]v1alpha1.AutoScalingGroup, len(ng.Resources.AutoScalingGroups))
 			for c, a := range ng.Resources.AutoScalingGroups {
-				asg[c] = v1alpha1.AutoScalingGroup{Name: aws.StringValue(a.Name)}
+				asg[c] = v1alpha1.AutoScalingGroup{Name: awsclient.StringValue(a.Name)}
 			}
 			o.Resources.AutoScalingGroups = asg
 		}
@@ -160,8 +160,8 @@ func LateInitializeNodeGroup(in *v1alpha1.NodeGroupParameters, ng *ekstypes.Node
 	if ng == nil {
 		return
 	}
-	in.AMIType = awsclients.LateInitializeStringPtr(in.AMIType, awsclients.String(string(ng.AmiType)))
-	in.DiskSize = awsclients.LateInitializeInt32Ptr(in.DiskSize, ng.DiskSize)
+	in.AMIType = awsclient.LateInitializeStringPtr(in.AMIType, awsclient.String(string(ng.AmiType)))
+	in.DiskSize = awsclient.LateInitializeInt32Ptr(in.DiskSize, ng.DiskSize)
 	if len(in.InstanceTypes) == 0 && len(ng.InstanceTypes) > 0 {
 		in.InstanceTypes = ng.InstanceTypes
 	}
@@ -181,8 +181,8 @@ func LateInitializeNodeGroup(in *v1alpha1.NodeGroupParameters, ng *ekstypes.Node
 			MaxSize:     ng.ScalingConfig.MaxSize,
 		}
 	}
-	in.ReleaseVersion = awsclients.LateInitializeStringPtr(in.ReleaseVersion, ng.ReleaseVersion)
-	in.Version = awsclients.LateInitializeStringPtr(in.Version, ng.Version)
+	in.ReleaseVersion = awsclient.LateInitializeStringPtr(in.ReleaseVersion, ng.ReleaseVersion)
+	in.Version = awsclient.LateInitializeStringPtr(in.Version, ng.Version)
 	// NOTE(hasheddan): we always will set the default Crossplane tags in
 	// practice during initialization in the controller, but we check if no tags
 	// exist for consistency with expected late initialization behavior.
@@ -207,7 +207,7 @@ func IsNodeGroupUpToDate(p *v1alpha1.NodeGroupParameters, ng *ekstypes.Nodegroup
 	}
 	if p.ScalingConfig != nil && ng.ScalingConfig != nil {
 		if p.ScalingConfig.DesiredSize != nil &&
-			awsclients.Int64Value(p.ScalingConfig.DesiredSize) != awsclients.Int64Value(ng.ScalingConfig.DesiredSize) {
+			aws.ToInt32(p.ScalingConfig.DesiredSize) != aws.ToInt32(ng.ScalingConfig.DesiredSize) {
 			return false
 		}
 		if !cmp.Equal(p.ScalingConfig.MaxSize, ng.ScalingConfig.MaxSize) {

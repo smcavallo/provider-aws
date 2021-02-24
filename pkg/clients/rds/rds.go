@@ -63,19 +63,13 @@ func NewClient(cfg *aws.Config) Client {
 // already exists.
 func IsErrorAlreadyExists(err error) bool {
 	var aef *rdstypes.DBInstanceAlreadyExistsFault
-	if errors.As(err, &aef) {
-		return true
-	}
-	return false
+	return errors.As(err, &aef)
 }
 
 // IsErrorNotFound helper function to test for ErrCodeDBInstanceNotFoundFault error
 func IsErrorNotFound(err error) bool {
 	var nff *rdstypes.DBInstanceNotFoundFault
-	if errors.As(err, &nff) {
-		return true
-	}
-	return false
+	return errors.As(err, &nff)
 }
 
 // GenerateCreateDBInstanceInput from RDSInstanceSpec

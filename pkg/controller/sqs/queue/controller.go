@@ -150,7 +150,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 
 	cr.SetConditions(xpv1.Creating())
 
-	_, err := e.client.CreateQueue(ctx, &awssqs.CreateQueueInput{
+	resp, err := e.client.CreateQueue(ctx, &awssqs.CreateQueueInput{
 		Attributes: sqs.GenerateCreateAttributes(&cr.Spec.ForProvider),
 		QueueName:  aws.String(meta.GetExternalName(cr)),
 		Tags:       cr.Spec.ForProvider.Tags,

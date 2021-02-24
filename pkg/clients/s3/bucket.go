@@ -110,19 +110,13 @@ func NewClient(cfg aws.Config) BucketClient {
 // IsNotFound helper function to test for NotFound error
 func IsNotFound(err error) bool {
 	var nsb *s3types.NoSuchBucket
-	if errors.As(err, &nsb) {
-		return true
-	}
-	return false
+	return errors.As(err, &nsb)
 }
 
 // IsAlreadyExists helper function to test for ErrCodeBucketAlreadyOwnedByYou error
 func IsAlreadyExists(err error) bool {
 	var nsb *s3types.BucketAlreadyOwnedByYou
-	if errors.As(err, &nsb) {
-		return true
-	}
-	return false
+	return errors.As(err, &nsb)
 }
 
 // GenerateCreateBucketInput creates the input for CreateBucket S3 Client request

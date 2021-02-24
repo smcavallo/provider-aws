@@ -187,22 +187,22 @@ func IsUpToDate(p v1beta1.QueueParameters, attributes map[string]string, tags ma
 		}
 	}
 
-	if aws.ToInt64(p.DelaySeconds) != ToInt64(attributes[v1beta1.AttributeDelaySeconds]) {
+	if aws.ToInt64(p.DelaySeconds) != toInt64(attributes[v1beta1.AttributeDelaySeconds]) {
 		return false
 	}
-	if aws.ToInt64(p.KMSDataKeyReusePeriodSeconds) != ToInt64(attributes[v1beta1.AttributeKmsDataKeyReusePeriodSeconds]) {
+	if aws.ToInt64(p.KMSDataKeyReusePeriodSeconds) != toInt64(attributes[v1beta1.AttributeKmsDataKeyReusePeriodSeconds]) {
 		return false
 	}
-	if aws.ToInt64(p.MaximumMessageSize) != ToInt64(attributes[v1beta1.AttributeMaximumMessageSize]) {
+	if aws.ToInt64(p.MaximumMessageSize) != toInt64(attributes[v1beta1.AttributeMaximumMessageSize]) {
 		return false
 	}
-	if aws.ToInt64(p.MessageRetentionPeriod) != ToInt64(attributes[v1beta1.AttributeMessageRetentionPeriod]) {
+	if aws.ToInt64(p.MessageRetentionPeriod) != toInt64(attributes[v1beta1.AttributeMessageRetentionPeriod]) {
 		return false
 	}
-	if aws.ToInt64(p.ReceiveMessageWaitTimeSeconds) != ToInt64(attributes[v1beta1.AttributeReceiveMessageWaitTimeSeconds]) {
+	if aws.ToInt64(p.ReceiveMessageWaitTimeSeconds) != toInt64(attributes[v1beta1.AttributeReceiveMessageWaitTimeSeconds]) {
 		return false
 	}
-	if aws.ToInt64(p.VisibilityTimeout) != ToInt64(attributes[v1beta1.AttributeVisibilityTimeout]) {
+	if aws.ToInt64(p.VisibilityTimeout) != toInt64(attributes[v1beta1.AttributeVisibilityTimeout]) {
 		return false
 	}
 	if !cmp.Equal(aws.ToString(p.KMSMasterKeyID), attributes[v1beta1.AttributeKmsMasterKeyID]) {
@@ -247,7 +247,7 @@ func TagsDiff(sqsTags map[string]string, newTags map[string]string) (removed, ad
 	return
 }
 
-func ToInt64(s string) int64 {
+func toInt64(s string) int64 {
 	v, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
 		return 0

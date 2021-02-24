@@ -396,30 +396,21 @@ func ConnectionEndpoint(rg elasticachetypes.ReplicationGroup) managed.Connection
 // was not found.
 func IsNotFound(err error) bool {
 	var gnf *elasticachetypes.ReplicationGroupNotFoundFault
-	if errors.As(err, &gnf) {
-		return true
-	}
-	return false
+	return errors.As(err, &gnf)
 }
 
 // IsSubnetGroupNotFound returns true if the supplied error indicates a Cache Subnet Group
 // was not found.
 func IsSubnetGroupNotFound(err error) bool {
 	var gnf *elasticachetypes.CacheSubnetGroupNotFoundFault
-	if errors.As(err, &gnf) {
-		return true
-	}
-	return false
+	return errors.As(err, &gnf)
 }
 
 // IsAlreadyExists returns true if the supplied error indicates a Replication Group
 // already exists.
 func IsAlreadyExists(err error) bool {
 	var gae *elasticachetypes.ReplicationGroupAlreadyExistsFault
-	if errors.As(err, &gae) {
-		return true
-	}
-	return false
+	return errors.As(err, &gae)
 }
 
 // IsSubnetGroupUpToDate checks if CacheSubnetGroupParameters are in sync with provider values
@@ -544,10 +535,7 @@ func GenerateClusterObservation(c elasticachetypes.CacheCluster) cachev1alpha1.C
 // already exists.
 func IsClusterNotFound(err error) bool {
 	var gnf *elasticachetypes.CacheClusterNotFoundFault
-	if errors.As(err, &gnf) {
-		return true
-	}
-	return false
+	return errors.As(err, &gnf)
 }
 
 // LateInitializeCluster assigns the observed configurations and assigns them to the

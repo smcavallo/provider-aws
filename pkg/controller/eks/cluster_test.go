@@ -119,7 +119,7 @@ func TestObserve(t *testing.T) {
 				result: managed.ExternalObservation{
 					ResourceExists:    true,
 					ResourceUpToDate:  true,
-					ConnectionDetails: eks.GetConnectionDetails(&awsekstypes.Cluster{}, fake.MockSTSClient{}),
+					ConnectionDetails: eks.GetConnectionDetails(context.TODO(), &awsekstypes.Cluster{}, &fake.MockSTSClient{}),
 				},
 			},
 		},
@@ -143,7 +143,7 @@ func TestObserve(t *testing.T) {
 				result: managed.ExternalObservation{
 					ResourceExists:    true,
 					ResourceUpToDate:  true,
-					ConnectionDetails: eks.GetConnectionDetails(&awsekstypes.Cluster{}, fake.MockSTSClient{}),
+					ConnectionDetails: eks.GetConnectionDetails(context.TODO(), &awsekstypes.Cluster{}, &fake.MockSTSClient{}),
 				},
 			},
 		},
@@ -167,7 +167,7 @@ func TestObserve(t *testing.T) {
 				result: managed.ExternalObservation{
 					ResourceExists:    true,
 					ResourceUpToDate:  true,
-					ConnectionDetails: eks.GetConnectionDetails(&awsekstypes.Cluster{}, fake.MockSTSClient{}),
+					ConnectionDetails: eks.GetConnectionDetails(context.TODO(), &awsekstypes.Cluster{}, &fake.MockSTSClient{}),
 				},
 			},
 		},
@@ -224,7 +224,7 @@ func TestObserve(t *testing.T) {
 				result: managed.ExternalObservation{
 					ResourceExists:    true,
 					ResourceUpToDate:  true,
-					ConnectionDetails: eks.GetConnectionDetails(&awsekstypes.Cluster{}, fake.MockSTSClient{}),
+					ConnectionDetails: eks.GetConnectionDetails(context.TODO(), &awsekstypes.Cluster{}, &fake.MockSTSClient{}),
 				},
 			},
 		},

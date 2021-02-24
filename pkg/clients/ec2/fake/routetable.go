@@ -82,5 +82,5 @@ func (m *MockRouteTableClient) CreateTags(ctx context.Context, input *ec2.Create
 
 // DeleteTags mocks DeleteTags method
 func (m *MockRouteTableClient) DeleteTags(ctx context.Context, input *ec2.DeleteTagsInput, opts ...func(*ec2.Options)) (*ec2.DeleteTagsOutput, error) {
-	return m.MockDeleteTags(input)
+	return m.MockDeleteTags(ctx, input, opts)
 }

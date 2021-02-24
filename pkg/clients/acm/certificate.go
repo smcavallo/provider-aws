@@ -153,8 +153,5 @@ func IsCertificateUpToDate(p v1alpha1.CertificateParameters, cd types.Certificat
 // IsErrorNotFound returns true if the error code indicates that the item was not found
 func IsErrorNotFound(err error) bool {
 	var nsr *acmtypes.ResourceNotFoundException
-	if errors.As(err, &nsr) {
-		return true
-	}
-	return false
+	return errors.As(err, &nsr)
 }

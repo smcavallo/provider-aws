@@ -207,9 +207,10 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 				Tags:      addTags,
 			}); err != nil {
 				return managed.ExternalUpdate{}, awsclient.Wrap(err, errCreateTags)
+			}
 		}
 		if len(removeTags) > 0 {
-			if _, err := e.client.DeleteTags(&awsec2.DeleteTagsInput{
+			if _, err := e.client.DeleteTags(ctx, &awsec2.DeleteTagsInput{
 				Resources: []string{meta.GetExternalName(cr)},
 				Tags:      removeTags,
 			}); err != nil {
@@ -259,13 +260,13 @@ func (e *external) deleteRoutes(ctx context.Context, tableID string, desired []v
 	for _, rt := range observed {
 		found := false
 		for _, ds := range desired {
-			if aws.StringValue(ds.DestinationCIDRBlock) == rt.DestinationCIDRBlock && (aws.StringValue(ds.GatewayID) == rt.GatewayID &&
-				aws.StringValue(ds.InstanceID) == rt.InstanceID &&
-				aws.StringValue(ds.LocalGatewayID) == rt.LocalGatewayID &&
-				aws.StringValue(ds.NatGatewayID) == rt.NatGatewayID &&
-				aws.StringValue(ds.NetworkInterfaceID) == rt.NetworkInterfaceID &&
-				aws.StringValue(ds.TransitGatewayID) == rt.TransitGatewayID &&
-				aws.StringValue(ds.VpcPeeringConnectionID) == rt.VpcPeeringConnectionID) {
+			if aws.ToString(ds.DestinationCIDRBlock) == rt.DestinationCIDRBlock && (aws.ToString(ds.GatewayID) == rt.GatewayID &&
+				aws.ToString(ds.InstanceID) == rt.InstanceID &&
+				aws.ToString(ds.LocalGatewayID) == rt.LocalGatewayID &&
+				aws.ToString(ds.NatGatewayID) == rt.NatGatewayID &&
+				aws.ToString(ds.NetworkInterfaceID) == rt.NetworkInterfaceID &&
+				aws.ToString(ds.TransitGatewayID) == rt.TransitGatewayID &&
+				aws.ToString(ds.VpcPeeringConnectionID) == rt.VpcPeeringConnectionID) {
 
 				found = true
 				break
@@ -273,19 +274,19 @@ func (e *external) deleteRoutes(ctx context.Context, tableID string, desired []v
 		}
 		if !found && rt.GatewayID != ec2.DefaultLocalGatewayID {
 			if rt.DestinationCIDRBlock != "" {
-				_, err := e.client.DeleteRouteRequest(&awsec2.DeleteRouteInput{
+				_, err := e.client.DeleteRoute(ctx, &awsec2.DeleteRouteInput{
 					RouteTableId:         aws.String(tableID),
 					DestinationCidrBlock: aws.String(rt.DestinationCIDRBlock),
-				}).Send(ctx)
+				})
 
 				if err != nil {
 					return err
 				}
 			} else {
-				_, err := e.client.DeleteRouteRequest(&awsec2.DeleteRouteInput{
+				_, err := e.client.DeleteRoute(ctx, &awsec2.DeleteRouteInput{
 					RouteTableId:             aws.String(tableID),
 					DestinationIpv6CidrBlock: aws.String(rt.DestinationIPV6CIDRBlock),
-				}).Send(ctx)
+				})
 
 				if err != nil {
 					return err
@@ -314,9 +315,9 @@ func (e *external) createRoutes(ctx context.Context, tableID string, desired []v
 		// if the route is already created, skip it
 		if !isObserved {
 			_, err := e.client.CreateRoute(ctx, &awsec2.CreateRouteInput{
-				RouteTableId:         aws.String(tableID),
-				DestinationCidrBlock: rt.DestinationCIDRBlock,
-				GatewayId:            rt.GatewayID,
+				RouteTableId:             aws.String(tableID),
+				DestinationCidrBlock:     rt.DestinationCIDRBlock,
+				GatewayId:                rt.GatewayID,
 				DestinationIpv6CidrBlock: rt.DestinationIPV6CIDRBlock,
 				InstanceId:               rt.InstanceID,
 				LocalGatewayId:           rt.LocalGatewayID,
@@ -351,7 +352,7 @@ func (e *external) removeAssociations(ctx context.Context, desired []v1beta1.Ass
 	for _, asc := range observed {
 		found := false
 		for _, ds := range desired {
-			if asc.SubnetID == aws.StringValue(ds.SubnetID) {
+			if asc.SubnetID == aws.ToString(ds.SubnetID) {
 				found = true
 				break
 			}

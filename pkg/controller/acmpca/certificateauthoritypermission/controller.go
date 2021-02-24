@@ -121,10 +121,10 @@ func (e *external) Create(ctx context.Context, mgd resource.Managed) (managed.Ex
 	}
 	cr.Status.SetConditions(xpv1.Creating())
 	_, err := e.client.CreatePermission(ctx, &awsacmpca.CreatePermissionInput{
-		Actions:                 []awsacmpcatypes.ActionType{awsacmpcatypes.ActionTypeIssuecertificate, awsacmpcatypes.ActionTypeGetcertificate, awsacmpcatypes.ActionTypeListpermissions},
+		Actions:                 []awsacmpcatypes.ActionType{awsacmpcatypes.ActionTypeIssueCertificate, awsacmpcatypes.ActionTypeGetCertificate, awsacmpcatypes.ActionTypeListPermissions},
 		CertificateAuthorityArn: cr.Spec.ForProvider.CertificateAuthorityARN,
 		Principal:               aws.String(principal),
-	}).Send(ctx)
+	})
 	return managed.ExternalCreation{}, awsclient.Wrap(err, errCreate)
 
 }

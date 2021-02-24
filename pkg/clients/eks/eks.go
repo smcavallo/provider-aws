@@ -23,14 +23,12 @@ import (
 	"errors"
 
 	"net"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -70,10 +68,10 @@ type Client interface {
 	DeleteFargateProfile(ctx context.Context, input *eks.DeleteFargateProfileInput, opts ...func(*eks.Options)) (*eks.DeleteFargateProfileOutput, error)
 }
 
-// STSClient defines STS Client operations
-// NOTE(cvodak): presigning was removed from aws-sdk-go-v2 and replaced in limited capacity
-// need to use v1 until https://github.com/aws/aws-sdk-go-v2/issues/1021
-type STSClient stsiface.STSAPI
+// STSClient STS presigner
+type STSClient interface {
+	PresignGetCallerIdentity(ctx context.Context, input *sts.GetCallerIdentityInput, opts ...func(*sts.PresignOptions)) (*v4.PresignedHTTPRequest, error)
+}
 
 // NewEKSClient creates new EKS Client with provided AWS Configurations/Credentials.
 func NewEKSClient(cfg aws.Config) Client {
@@ -81,35 +79,26 @@ func NewEKSClient(cfg aws.Config) Client {
 }
 
 // NewSTSClient creates a new STS Client.
-func NewSTSClient(sess *session.Session) STSClient {
-	return sts.New(sess)
+func NewSTSClient(cfg aws.Config) STSClient {
+	return sts.NewPresignClient(sts.NewFromConfig(cfg))
 }
 
 // IsErrorNotFound helper function to test for ResourceNotFoundException error.
 func IsErrorNotFound(err error) bool {
 	var nfe *ekstypes.ResourceNotFoundException
-	if errors.As(err, &nfe) {
-		return true
-	}
-	return false
+	return errors.As(err, &nfe)
 }
 
 // IsErrorInUse helper function to test for eResourceInUseException error.
 func IsErrorInUse(err error) bool {
 	var iue *ekstypes.ResourceInUseException
-	if errors.As(err, &iue) {
-		return true
-	}
-	return false
+	return errors.As(err, &iue)
 }
 
 // IsErrorInvalidRequest helper function to test for InvalidRequestException error.
 func IsErrorInvalidRequest(err error) bool {
 	var ire *ekstypes.InvalidRequestException
-	if errors.As(err, &ire) {
-		return true
-	}
-	return false
+	return errors.As(err, &ire)
 }
 
 // GenerateCreateClusterInput from ClusterParameters.
@@ -345,12 +334,12 @@ func IsUpToDate(p *v1beta1.ClusterParameters, cluster *ekstypes.Cluster) (bool, 
 }
 
 // GetConnectionDetails extracts managed.ConnectionDetails out of ekstypes.Cluster.
-func GetConnectionDetails(cluster *ekstypes.Cluster, stsClient STSClient) managed.ConnectionDetails {
+func GetConnectionDetails(ctx context.Context, cluster *ekstypes.Cluster, stsClient STSClient) managed.ConnectionDetails {
 	if cluster == nil || cluster.Name == nil || cluster.Endpoint == nil || cluster.CertificateAuthority == nil || cluster.CertificateAuthority.Data == nil {
 		return managed.ConnectionDetails{}
 	}
-	request, _ := stsClient.GetCallerIdentityRequest(&sts.GetCallerIdentityInput{})
-	request.HTTPRequest.Header.Add(clusterIDHeader, *cluster.Name)
+	getCallerIdentity, _ := stsClient.PresignGetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	getCallerIdentity.SignedHeader[clusterIDHeader] = []string{*cluster.Name}
 
 	// NOTE(hasheddan): This is carried over from the v1alpha3 version of the
 	// EKS cluster resource. Signing the URL means that anyone in possession of
@@ -359,11 +348,7 @@ func GetConnectionDetails(cluster *ekstypes.Cluster, stsClient STSClient) manage
 	// be able to schedule workloads to the cluster for now, but is not the most
 	// secure way of accessing the cluster.
 	// More information: https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
-	presignedURLString, err := request.Presign(60 * time.Second)
-	if err != nil {
-		return managed.ConnectionDetails{}
-	}
-	token := v1Prefix + base64.RawURLEncoding.EncodeToString([]byte(presignedURLString))
+	token := v1Prefix + base64.RawURLEncoding.EncodeToString([]byte(getCallerIdentity.URL))
 
 	// NOTE(hasheddan): We must decode the CA data before constructing our
 	// Kubeconfig, as the raw Kubeconfig will be base64 encoded again when

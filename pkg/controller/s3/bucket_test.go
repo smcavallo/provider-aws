@@ -317,7 +317,7 @@ func TestUpdate(t *testing.T) {
 			args: args{
 				s3: s3Testing.Client(
 					s3Testing.WithGetRequestPayment(func(ctx context.Context, input *awss3.GetBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.GetBucketRequestPaymentOutput, error) {
-						return &awss3.GetBucketRequestPaymentOutput{Payer: awss3types.PayerBucketowner}, nil
+						return &awss3.GetBucketRequestPaymentOutput{Payer: awss3types.PayerBucketOwner}, nil
 
 					}),
 					s3Testing.WithPutRequestPayment(func(ctx context.Context, input *awss3.PutBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.PutBucketRequestPaymentOutput, error) {
@@ -338,7 +338,7 @@ func TestUpdate(t *testing.T) {
 			args: args{
 				s3: s3Testing.Client(
 					s3Testing.WithGetRequestPayment(func(ctx context.Context, input *awss3.GetBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.GetBucketRequestPaymentOutput, error) {
-						return &awss3.GetBucketRequestPaymentOutput{Payer: awss3types.PayerBucketowner}, nil
+						return &awss3.GetBucketRequestPaymentOutput{Payer: awss3types.PayerBucketOwner}, nil
 
 					}),
 					s3Testing.WithPutRequestPayment(func(ctx context.Context, input *awss3.PutBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.PutBucketRequestPaymentOutput, error) {

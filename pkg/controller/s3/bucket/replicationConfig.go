@@ -131,18 +131,19 @@ func createRule(input v1beta1.ReplicationRule) awss3types.ReplicationRule {
 		Status:   awss3types.ReplicationRuleStatus(Rule.Status),
 	}
 	if Rule.Filter != nil {
-		if Rule.Filter.And != nil {
+		switch {
+		case Rule.Filter.And != nil:
 			andOperator := &awss3types.ReplicationRuleAndOperator{
 				Prefix: Rule.Filter.And.Prefix,
 			}
 			if Rule.Filter.And.Tags != nil {
 				andOperator.Tags = s3.SortS3TagSet(s3.CopyTags(Rule.Filter.And.Tags))
 			}
-			newRule.Filter = &awss3types.ReplicationRuleFilterMemberAnd{*andOperator}
-		} else if Rule.Filter.Tag != nil {
-			newRule.Filter = &awss3types.ReplicationRuleFilterMemberTag{awss3types.Tag{Key: awsclient.String(Rule.Filter.Tag.Key), Value: awsclient.String(Rule.Filter.Tag.Value)}}
-		} else if Rule.Filter.Prefix != nil {
-			newRule.Filter = &awss3types.ReplicationRuleFilterMemberPrefix{*Rule.Filter.Prefix}
+			newRule.Filter = &awss3types.ReplicationRuleFilterMemberAnd{Value: *andOperator}
+		case Rule.Filter.Tag != nil:
+			newRule.Filter = &awss3types.ReplicationRuleFilterMemberTag{Value: awss3types.Tag{Key: awsclient.String(Rule.Filter.Tag.Key), Value: awsclient.String(Rule.Filter.Tag.Value)}}
+		case Rule.Filter.Prefix != nil:
+			newRule.Filter = &awss3types.ReplicationRuleFilterMemberPrefix{Value: *Rule.Filter.Prefix}
 		}
 	}
 	if Rule.SourceSelectionCriteria != nil {

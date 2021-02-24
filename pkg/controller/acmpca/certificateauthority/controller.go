@@ -179,7 +179,8 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 	if len(cr.Spec.ForProvider.Tags) > 0 {
 		tags := make([]awsacmpcatypes.Tag, len(cr.Spec.ForProvider.Tags))
 		for i, t := range cr.Spec.ForProvider.Tags {
-			tags[i] = awsacmpcatypes.Tag{Key: &t.Key, Value: &t.Value}
+			tag := t
+			tags[i] = awsacmpcatypes.Tag{Key: &tag.Key, Value: &tag.Value}
 		}
 		currentTags, err := e.client.ListTags(ctx, &awsacmpca.ListTagsInput{
 			CertificateAuthorityArn: aws.String(meta.GetExternalName(cr)),

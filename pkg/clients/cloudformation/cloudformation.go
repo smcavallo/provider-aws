@@ -76,15 +76,12 @@ func (c *cloudFormationClient) GetStack(stackID *string) (stack *cftypes.Stack, 
 
 // DeleteStack deletes a stack
 func (c *cloudFormationClient) DeleteStack(stackID *string) error {
-	_, err := c.cloudformation.DeleteStack(context.TODO(), &cf.DeleteStackInput{StackName: stackID}))
+	_, err := c.cloudformation.DeleteStack(context.TODO(), &cf.DeleteStackInput{StackName: stackID})
 	return err
 }
 
 // IsErrorNotFound - not found error
 func IsErrorNotFound(err error) bool {
 	var inf *cftypes.StackInstanceNotFoundException
-	if errors.As(err, &inf) {
-		return true
-	}
-	return false
+	return errors.As(err, &inf)
 }

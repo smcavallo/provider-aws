@@ -4,26 +4,27 @@ go 1.15
 
 require (
 	github.com/aws/aws-sdk-go v1.37.4
-	github.com/aws/aws-sdk-go-v2 v0.31.0
-	github.com/aws/aws-sdk-go-v2/config v0.4.0
-	github.com/aws/aws-sdk-go-v2/credentials v0.2.0
-	github.com/aws/aws-sdk-go-v2/service/acm v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/acmpca v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/ec2 v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/ecr v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/eks v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/elasticache v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/iam v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/rds v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/redshift v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/route53 v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/s3 v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/sns v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/sqs v0.31.0
-	github.com/aws/aws-sdk-go-v2/service/sts v0.31.0
-	github.com/aws/smithy-go v0.5.0
+	github.com/aws/aws-sdk-go-v2 v1.2.0
+	github.com/aws/aws-sdk-go-v2/config v1.1.0
+	github.com/aws/aws-sdk-go-v2/credentials v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/acm v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/acmpca v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/ecr v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/eks v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/elasticache v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/iam v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/rds v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/redshift v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/route53 v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.1.1
+	github.com/aws/aws-sdk-go-v2/service/sns v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/sqs v1.1.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.1.0
+	github.com/aws/smithy-go v1.1.0
 	github.com/crossplane/crossplane-runtime v0.13.0
 	github.com/crossplane/crossplane-tools v0.0.0-20201201125637-9ddc70edfd0d
 	github.com/evanphx/json-patch v4.9.0+incompatible

@@ -47,10 +47,7 @@ func NewClient(cfg aws.Config) Client {
 // IsNotFound returns true if the error code indicates that the requested Zone was not found
 func IsNotFound(err error) bool {
 	var nshz *route53types.NoSuchHostedZone
-	if errors.As(err, &nshz) {
-		return true
-	}
-	return false
+	return errors.As(err, &nshz)
 }
 
 // IsUpToDate check whether the comment in Spec and Response are same or not

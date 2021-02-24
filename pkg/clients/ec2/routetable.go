@@ -162,7 +162,7 @@ func LateInitializeRT(in *v1beta1.RouteTableParameters, rt *ec2types.RouteTable)
 // CreateRTPatch creates a *v1beta1.RouteTableParameters that has only the changed
 // values between the target *v1beta1.RouteTableParameters and the current
 // *ec2.RouteTable
-func CreateRTPatch(in ec2.RouteTable, target v1beta1.RouteTableParameters) (*v1beta1.RouteTableParameters, error) {
+func CreateRTPatch(in ec2types.RouteTable, target v1alpha4.RouteTableParameters) (*v1beta1.RouteTableParameters, error) {
 	targetCopy := target.DeepCopy()
 	currentParams := &v1beta1.RouteTableParameters{}
 
@@ -214,7 +214,7 @@ func IsRtUpToDate(p v1beta1.RouteTableParameters, rt ec2types.RouteTable) (bool,
 }
 
 // SortRoutes sorts array of Routes on DestinationCIDR
-func SortRoutes(route []v1beta1.Route, ec2Route []ec2.Route) {
+func SortRoutes(route []v1beta1.Route, ec2Route []ec2types.Route) {
 	sort.Slice(route, func(i, j int) bool {
 		return (route[i].DestinationCIDRBlock != nil && *route[i].DestinationCIDRBlock < *route[j].DestinationCIDRBlock) ||
 			(route[i].DestinationIPV6CIDRBlock != nil && *route[i].DestinationIPV6CIDRBlock < *route[j].DestinationIPV6CIDRBlock)

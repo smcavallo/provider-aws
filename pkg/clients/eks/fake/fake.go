@@ -19,8 +19,9 @@ package fake
 import (
 	"context"
 
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
 // MockClient is a fake implementation of eks.Client.
@@ -44,8 +45,14 @@ type MockClient struct {
 	MockDeleteFargateProfile   func(ctx context.Context, input *eks.DeleteFargateProfileInput, opts []func(*eks.Options)) (*eks.DeleteFargateProfileOutput, error)
 }
 
+// MockSTSClient mock sts client
 type MockSTSClient struct {
-	stsiface.STSAPI
+	MockPresignGetCallerIdentity func(ctx context.Context, input *sts.GetCallerIdentityInput, opts []func(*sts.PresignOptions)) (*v4.PresignedHTTPRequest, error)
+}
+
+// PresignGetCallerIdentity calls the underlying MockPresignGetCallerIdentity method.
+func (c *MockSTSClient) PresignGetCallerIdentity(ctx context.Context, input *sts.GetCallerIdentityInput, opts ...func(*sts.PresignOptions)) (*v4.PresignedHTTPRequest, error) {
+	return c.MockPresignGetCallerIdentity(ctx, input, opts)
 }
 
 // CreateCluster calls the underlying MockCreateCluster method.

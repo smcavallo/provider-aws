@@ -139,8 +139,8 @@ func (e *external) Observe(ctx context.Context, mgd resource.Managed) (managed.E
 	o := awsec2.DescribeVpcAttributeOutput{}
 
 	for _, input := range []awsec2types.VpcAttributeName{
-		awsec2types.VpcAttributeNameEnablednssupport,
-		awsec2types.VpcAttributeNameEnablednshostnames,
+		awsec2types.VpcAttributeNameEnableDnsSupport,
+		awsec2types.VpcAttributeNameEnableDnsHostnames,
 	} {
 		r, err := e.client.DescribeVpcAttribute(context.Background(), &awsec2.DescribeVpcAttributeInput{
 			VpcId:     aws.String(meta.GetExternalName(cr)),

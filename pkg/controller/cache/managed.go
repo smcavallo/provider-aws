@@ -22,7 +22,8 @@ import (
 	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	elasticacheservicetypes "github.com/aws/aws-sdk-go-v2/service/elasticache/types"
+	awselasticache "github.com/aws/aws-sdk-go-v2/service/elasticache"
+	awselasticachetypes "github.com/aws/aws-sdk-go-v2/service/elasticache/types"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -116,7 +117,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	if err != nil {
 		return managed.ExternalObservation{}, awsclient.Wrap(err, errGetCacheClusterList)
 	}
-	var oneCC elasticacheservicetypes.CacheCluster
+	var oneCC awselasticachetypes.CacheCluster
 	if len(ccList) > 0 {
 		oneCC = ccList[0]
 	}
@@ -237,11 +238,11 @@ func (t *tagger) Initialize(ctx context.Context, mg resource.Managed) error {
 	return errors.Wrap(t.kube.Update(ctx, cr), errUpdateReplicationGroupCR)
 }
 
-func getCacheClusterList(ctx context.Context, client elasticache.Client, idList []string) ([]elasticacheservicetypes.CacheCluster, error) {
+func getCacheClusterList(ctx context.Context, client awselasticache.DescribeCacheClustersAPIClient, idList []string) ([]awselasticachetypes.CacheCluster, error) {
 	if len(idList) < 1 {
 		return nil, nil
 	}
-	ccList := make([]elasticacheservicetypes.CacheCluster, len(idList))
+	ccList := make([]awselasticachetypes.CacheCluster, len(idList))
 	for i, cc := range idList {
 		rsp, err := client.DescribeCacheClusters(ctx, elasticache.NewDescribeCacheClustersInput(cc))
 		if err != nil {

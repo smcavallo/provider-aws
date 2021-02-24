@@ -199,8 +199,5 @@ func GenerateCertificateAuthorityExternalStatus(certificateAuthority types.Certi
 // IsErrorNotFound returns true if the error code indicates that the item was not found
 func IsErrorNotFound(err error) bool {
 	var ise *types.InvalidStateException
-	if errors.As(err, &ise) {
-		return true
-	}
-	return false
+	return errors.As(err, &ise)
 }

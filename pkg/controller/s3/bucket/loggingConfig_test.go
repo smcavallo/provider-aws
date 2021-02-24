@@ -66,7 +66,7 @@ func generateAWSLogging() *s3types.LoggingEnabled {
 				DisplayName:  &displayName,
 				EmailAddress: &email,
 				ID:           &id,
-				Type:         s3types.TypeCanonicaluser,
+				Type:         s3types.TypeCanonicalUser,
 				URI:          &groupURI,
 			},
 			Permission: s3types.BucketLogsPermissionFullControl,

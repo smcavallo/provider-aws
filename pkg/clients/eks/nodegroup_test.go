@@ -146,13 +146,13 @@ func TestGenerateCreateNodeGroupInput(t *testing.T) {
 				},
 			},
 			want: &eks.CreateNodegroupInput{
-				AmiType:       eks.AMITypes(amiType),
+				AmiType:       ekstypes.AMITypes(amiType),
 				ClusterName:   &clusterName,
 				DiskSize:      &diskSize,
 				InstanceTypes: []string{"cool-type"},
 				NodeRole:      &nodeRole,
 				NodegroupName: &ngName,
-				ScalingConfig: &eks.NodegroupScalingConfig{
+				ScalingConfig: &ekstypes.NodegroupScalingConfig{
 					DesiredSize: &size,
 					MaxSize:     &maxSize,
 					MinSize:     &size,
@@ -293,11 +293,11 @@ func TestGenerateUpdateNodeGroupInput(t *testing.T) {
 					Tags:    map[string]string{"cool": "tag"},
 					Version: &version,
 				},
-				n: &eks.Nodegroup{
+				n: &ekstypes.Nodegroup{
 					ClusterName:   &clusterName,
 					NodegroupName: &ngName,
 					Labels:        map[string]string{"cool": "label"},
-					ScalingConfig: &eks.NodegroupScalingConfig{
+					ScalingConfig: &ekstypes.NodegroupScalingConfig{
 						DesiredSize: &currentSize,
 						MaxSize:     &maxSize,
 						MinSize:     &size,
@@ -306,12 +306,12 @@ func TestGenerateUpdateNodeGroupInput(t *testing.T) {
 			},
 			want: &eks.UpdateNodegroupConfigInput{
 				ClusterName: &clusterName,
-				Labels: &eks.UpdateLabelsPayload{
+				Labels: &ekstypes.UpdateLabelsPayload{
 					AddOrUpdateLabels: map[string]string{},
 					RemoveLabels:      []string{},
 				},
 				NodegroupName: &ngName,
-				ScalingConfig: &eks.NodegroupScalingConfig{
+				ScalingConfig: &ekstypes.NodegroupScalingConfig{
 					DesiredSize: &currentSize,
 					MaxSize:     &maxSize,
 					MinSize:     &size,
@@ -334,35 +334,35 @@ func TestGenerateUpdateNodeGroupInput(t *testing.T) {
 						SourceSecurityGroups: []string{"cool-group"},
 					},
 					ScalingConfig: &v1alpha1.NodeGroupScalingConfig{
-						MaxSize: awsclients.Int64(10),
-						MinSize: awsclients.Int64(6),
+						MaxSize: awsclients.Int32(10),
+						MinSize: awsclients.Int32(6),
 					},
 					Subnets: []string{"cool-subnet"},
 					Tags:    map[string]string{"cool": "tag"},
 					Version: &version,
 				},
-				n: &eks.Nodegroup{
+				n: &ekstypes.Nodegroup{
 					ClusterName:   &clusterName,
 					NodegroupName: &ngName,
 					Labels:        map[string]string{"cool": "label"},
-					ScalingConfig: &eks.NodegroupScalingConfig{
-						DesiredSize: awsclients.Int64(5),
-						MaxSize:     awsclients.Int64(10),
-						MinSize:     awsclients.Int64(3),
+					ScalingConfig: &ekstypes.NodegroupScalingConfig{
+						DesiredSize: awsclients.Int32(5),
+						MaxSize:     awsclients.Int32(10),
+						MinSize:     awsclients.Int32(3),
 					},
 				},
 			},
 			want: &eks.UpdateNodegroupConfigInput{
 				ClusterName: &clusterName,
-				Labels: &eks.UpdateLabelsPayload{
+				Labels: &ekstypes.UpdateLabelsPayload{
 					AddOrUpdateLabels: map[string]string{},
 					RemoveLabels:      []string{},
 				},
 				NodegroupName: &ngName,
-				ScalingConfig: &eks.NodegroupScalingConfig{
-					DesiredSize: awsclients.Int64(6),
-					MaxSize:     awsclients.Int64(10),
-					MinSize:     awsclients.Int64(6),
+				ScalingConfig: &ekstypes.NodegroupScalingConfig{
+					DesiredSize: awsclients.Int32(6),
+					MaxSize:     awsclients.Int32(10),
+					MinSize:     awsclients.Int32(6),
 				},
 			},
 		},
@@ -417,7 +417,7 @@ func TestGenerateUpdateNodeObservation(t *testing.T) {
 							},
 						},
 					},
-					ScalingConfig: &eks.NodegroupScalingConfig{
+					ScalingConfig: &ekstypes.NodegroupScalingConfig{
 						DesiredSize: &size,
 						MaxSize:     &maxSize,
 						MinSize:     &size,
@@ -524,16 +524,16 @@ func TestLateInitializeNodeGroup(t *testing.T) {
 						MinSize:     &size,
 					},
 				},
-				n: &eks.Nodegroup{
-					AmiType:       eks.AMITypesAl2X8664,
+				n: &ekstypes.Nodegroup{
+					AmiType:       ekstypes.AMITypesAl2X8664,
 					DiskSize:      &diskSize,
 					InstanceTypes: []string{"cool-type"},
 					Labels:        map[string]string{"cool": "label"},
-					RemoteAccess: &eks.RemoteAccessConfig{
+					RemoteAccess: &ekstypes.RemoteAccessConfig{
 						Ec2SshKey:            &keyArn,
 						SourceSecurityGroups: []string{"cool-group"},
 					},
-					ScalingConfig: &eks.NodegroupScalingConfig{
+					ScalingConfig: &ekstypes.NodegroupScalingConfig{
 						DesiredSize: &size,
 						MaxSize:     &maxSize,
 						MinSize:     &size,
@@ -700,9 +700,9 @@ func TestIsNodeGroupUpToDate(t *testing.T) {
 						MinSize:     &size,
 					},
 				},
-				n: &eks.Nodegroup{
+				n: &ekstypes.Nodegroup{
 					Labels: map[string]string{"cool": "label"},
-					ScalingConfig: &eks.NodegroupScalingConfig{
+					ScalingConfig: &ekstypes.NodegroupScalingConfig{
 						DesiredSize: &currentSize,
 						MaxSize:     &maxSize,
 						MinSize:     &size,

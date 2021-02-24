@@ -353,7 +353,7 @@ func TestDiffEC2Tags(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			tagCmp := cmpopts.SortSlices(func(i, j ec2.Tag) bool {
+			tagCmp := cmpopts.SortSlices(func(i, j ec2types.Tag) bool {
 				return StringValue(i.Key) < StringValue(j.Key)
 			})
 			add, remove := DiffEC2Tags(tc.args.local, tc.args.remote)

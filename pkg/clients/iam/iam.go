@@ -224,19 +224,13 @@ func (c *iamClient) attachPolicyToUser(policyName string, username string) error
 
 func isErrorAlreadyExists(err error) bool {
 	var iee *iamtypes.EntityAlreadyExistsException
-	if errors.As(err, &iee) {
-		return true
-	}
-	return false
+	return errors.As(err, &iee)
 }
 
 // IsErrorNotFound returns true if the error code indicates that the item was not found
 func IsErrorNotFound(err error) bool {
 	var nse *iamtypes.NoSuchEntityException
-	if errors.As(err, &nse) {
-		return true
-	}
-	return false
+	return errors.As(err, &nse)
 }
 
 // PolicyDocument is the structure of IAM policy document

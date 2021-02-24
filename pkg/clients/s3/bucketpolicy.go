@@ -54,10 +54,7 @@ func IsErrorPolicyNotFound(err error) bool {
 // IsErrorBucketNotFound returns true if the error code indicates that the bucket was not found
 func IsErrorBucketNotFound(err error) bool {
 	var nsb *s3types.NoSuchBucket
-	if errors.As(err, &nsb) {
-		return true
-	}
-	return false
+	return errors.As(err, &nsb)
 }
 
 // Serialize is the custom marshaller for the BucketPolicyParameters

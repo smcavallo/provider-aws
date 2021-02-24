@@ -99,7 +99,7 @@ func (e *external) Observe(ctx context.Context, mgd resource.Managed) (managed.E
 	}
 
 	resp, err := e.client.GetBucketPolicy(ctx, &awss3.GetBucketPolicyInput{
-		Bucket: cr.Spec.PolicyBody.BucketName,
+		Bucket: cr.Spec.Parameters.BucketName,
 	})
 	if err != nil {
 		if s3.IsErrorBucketNotFound(err) {
@@ -161,7 +161,7 @@ func (e *external) Create(ctx context.Context, mgd resource.Managed) (managed.Ex
 	}
 
 	policyString := *policyData
-	_, err = e.client.PutBucketPolicy(ctx, &awss3.PutBucketPolicyInput{Bucket: cr.Spec.PolicyBody.BucketName, Policy: awsclient.String(policyString)})
+	_, err = e.client.PutBucketPolicy(ctx, &awss3.PutBucketPolicyInput{Bucket: cr.Spec.Parameters.BucketName, Policy: awsclient.String(policyString)})
 	return managed.ExternalCreation{}, awsclient.Wrap(err, errAttach)
 }
 
@@ -177,8 +177,8 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 		return managed.ExternalUpdate{}, errors.Wrap(err, errUpdate)
 	}
 
-	_, err = e.client.PutBucketPolicy(ctx, &awss3.PutBucketPolicyInput{Bucket: cr.Spec.PolicyBody.BucketName, Policy: awsclient.String(*policyData)})
-	return managed.ExternalUpdate{}, awsclient.Wrap(err, errAttach)
+	_, err = e.client.PutBucketPolicy(ctx, &awss3.PutBucketPolicyInput{Bucket: cr.Spec.Parameters.BucketName, Policy: awsclient.String(*policyData)})
+	return managed.ExternalUpdate{}, awsclient.Wrap(err, errUpdate)
 }
 
 // Delete removes the existing policy for a bucket
@@ -188,7 +188,7 @@ func (e *external) Delete(ctx context.Context, mgd resource.Managed) error {
 		return errors.New(errUnexpectedObject)
 	}
 	cr.SetConditions(xpv1.Deleting())
-	_, err := e.client.DeleteBucketPolicy(ctx, &awss3.DeleteBucketPolicyInput{Bucket: cr.Spec.PolicyBody.BucketName})
+	_, err := e.client.DeleteBucketPolicy(ctx, &awss3.DeleteBucketPolicyInput{Bucket: cr.Spec.Parameters.BucketName})
 	if s3.IsErrorBucketNotFound(err) {
 		return nil
 	}

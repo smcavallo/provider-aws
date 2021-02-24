@@ -123,10 +123,7 @@ func LateInitializeELB(in *v1alpha1.ELBParameters, v *elbtypes.LoadBalancerDescr
 // IsELBNotFound returns true if the error is because the item doesn't exist.
 func IsELBNotFound(err error) bool {
 	var apnf *elbtypes.AccessPointNotFoundException
-	if errors.As(err, &apnf) {
-		return true
-	}
-	return false
+	return errors.As(err, &apnf)
 }
 
 // GenerateELBObservation is used to produce v1alpha1.ELBObservation from

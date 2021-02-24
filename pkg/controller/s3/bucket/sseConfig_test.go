@@ -60,7 +60,7 @@ func generateAWSSSE() *s3types.ServerSideEncryptionConfiguration {
 		Rules: []s3types.ServerSideEncryptionRule{
 			{
 				ApplyServerSideEncryptionByDefault: &s3types.ServerSideEncryptionByDefault{
-					KMSMasterKeyID: &keyID,
+					KMSMasterKeyID: awsclient.String(keyID),
 					SSEAlgorithm:   s3types.ServerSideEncryptionAes256,
 				},
 			},

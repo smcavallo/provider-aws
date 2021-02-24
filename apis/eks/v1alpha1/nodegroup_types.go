@@ -210,7 +210,7 @@ type NodeGroupScalingConfig struct {
 // NodeGroupScalingConfigStatus is the observed scaling configuration for a node group.
 type NodeGroupScalingConfigStatus struct {
 	// The current number of worker nodes for the managed node group.
-	DesiredSize *int64 `json:"desiredSize,omitempty"`
+	DesiredSize *int32 `json:"desiredSize,omitempty"`
 }
 
 // NodeGroupObservation is the observed state of a NodeGroup.

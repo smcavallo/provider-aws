@@ -147,10 +147,10 @@ func GenerateLifecycleRules(in []v1beta1.LifecycleRule) []awss3types.LifecycleRu
 		}
 		if local.Filter != nil {
 			if local.Filter.Prefix != nil {
-				rule.Filter = &awss3types.LifecycleRuleFilterMemberPrefix{*local.Filter.Prefix}
+				rule.Filter = &awss3types.LifecycleRuleFilterMemberPrefix{Value: *local.Filter.Prefix}
 			}
 			if local.Filter.Tag != nil {
-				rule.Filter = &awss3types.LifecycleRuleFilterMemberTag{awss3types.Tag{Key: awsclient.String(local.Filter.Tag.Key), Value: awsclient.String(local.Filter.Tag.Value)}}
+				rule.Filter = &awss3types.LifecycleRuleFilterMemberTag{Value: awss3types.Tag{Key: awsclient.String(local.Filter.Tag.Key), Value: awsclient.String(local.Filter.Tag.Value)}}
 			}
 			if local.Filter.And != nil {
 				andOperator := awss3types.LifecycleRuleAndOperator{
@@ -159,7 +159,7 @@ func GenerateLifecycleRules(in []v1beta1.LifecycleRule) []awss3types.LifecycleRu
 				if local.Filter.And.Tags != nil {
 					andOperator.Tags = s3.SortS3TagSet(s3.CopyTags(local.Filter.And.Tags))
 				}
-				rule.Filter = &awss3types.LifecycleRuleFilterMemberAnd{andOperator}
+				rule.Filter = &awss3types.LifecycleRuleFilterMemberAnd{Value: andOperator}
 			}
 		}
 		result = append(result, rule)

@@ -102,7 +102,7 @@ func generateAWSReplication() *s3types.ReplicationConfiguration {
 			},
 			ExistingObjectReplication: &s3types.ExistingObjectReplication{Status: s3types.ExistingObjectReplicationStatusEnabled},
 			Filter: &s3types.ReplicationRuleFilterMemberAnd{
-				s3types.ReplicationRuleAndOperator{
+				Value: s3types.ReplicationRuleAndOperator{
 					Prefix: &prefix,
 					Tags:   awsTags,
 				},

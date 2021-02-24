@@ -82,7 +82,7 @@ func (in *VersioningConfigurationClient) Observe(ctx context.Context, bucket *v1
 // GeneratePutBucketVersioningInput creates the input for the PutBucketVersioning request for the S3 Client
 func GeneratePutBucketVersioningInput(name string, config *v1beta1.VersioningConfiguration) *awss3.PutBucketVersioningInput {
 	return &awss3.PutBucketVersioningInput{
-		Bucket: aws.String(name),
+		Bucket: awsclient.String(name),
 		VersioningConfiguration: &awss3types.VersioningConfiguration{
 			MFADelete: awss3types.MFADelete(awsclient.StringValue(config.MFADelete)),
 			Status:    awss3types.BucketVersioningStatus(awsclient.StringValue(config.Status)),
@@ -98,4 +98,9 @@ func (in *VersioningConfigurationClient) CreateOrUpdate(ctx context.Context, buc
 	input := GeneratePutBucketVersioningInput(meta.GetExternalName(bucket), bucket.Spec.ForProvider.VersioningConfiguration)
 	_, err := in.client.PutBucketVersioning(ctx, input)
 	return awsclient.Wrap(err, versioningPutFailed)
+}
+
+// Delete does nothing because there is no corresponding deletion call in awsclient.
+func (*VersioningConfigurationClient) Delete(_ context.Context, _ *v1beta1.Bucket) error {
+	return nil
 }

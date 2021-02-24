@@ -184,12 +184,12 @@ func (m MockBucketClient) DeleteBucketReplication(ctx context.Context, input *s3
 	return m.MockDeleteBucketReplication(ctx, input, opts)
 }
 
-// PutBucketPayment is the fake method call to invoke the internal mock method
+// PutBucketRequestPayment is the fake method call to invoke the internal mock method
 func (m MockBucketClient) PutBucketRequestPayment(ctx context.Context, input *s3.PutBucketRequestPaymentInput, opts ...func(*s3.Options)) (*s3.PutBucketRequestPaymentOutput, error) {
 	return m.MockPutBucketRequestPayment(ctx, input, opts)
 }
 
-// GetBucketPayment is the fake method call to invoke the internal mock method
+// GetBucketRequestPayment is the fake method call to invoke the internal mock method
 func (m MockBucketClient) GetBucketRequestPayment(ctx context.Context, input *s3.GetBucketRequestPaymentInput, opts ...func(*s3.Options)) (*s3.GetBucketRequestPaymentOutput, error) {
 	return m.MockGetBucketRequestPayment(ctx, input, opts)
 }

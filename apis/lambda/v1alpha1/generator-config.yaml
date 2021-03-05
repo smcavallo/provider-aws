@@ -1,9 +1,9 @@
 ignore:
   field_paths:
-    - CreateFunctionInput.SecurityGroupIDs
-    - CreateFunctionInput.SubnetIDs
-    - UpdateFunctionInput.SecurityGroupIDs
-    - UpdateFunctionInput.SubnetIDs
+    - CreateFunctionInput.VPCConfig.SecurityGroupIDs
+    - CreateFunctionInput.VPCConfig.SubnetIDs
+    - UpdateFunctionInput.VPCConfig.SecurityGroupIDs
+    - UpdateFunctionInput.VPCConfig.SubnetIDs
   resource_names:
     - Alias
     - EventSourceMapping

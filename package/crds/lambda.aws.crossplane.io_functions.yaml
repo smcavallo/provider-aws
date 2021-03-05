@@ -205,20 +205,7 @@ spec:
                   vpcConfig:
                     description: CustomFunctionVPCConfigParameters includes custom fields for FunctionVPCConfigParameters.
                     properties:
-                      securityGroupIDs:
-                        items:
-                          type: string
-                        type: array
-                      subnetIDs:
-                        items:
-                          type: string
-                        type: array
-                      vpcConfig.securityGroupIDs:
-                        description: SecurityGroupIDs is the list of IDs for the SecurityGroups.
-                        items:
-                          type: string
-                        type: array
-                      vpcConfig.securityGroupIdRefs:
+                      securityGroupIDRefs:
                         description: SecurityGroupIDRefs is a list of references to SecurityGroups used to set the SecurityGroupIDs.
                         items:
                           description: A Reference to a named object.
@@ -230,7 +217,7 @@ spec:
                           - name
                           type: object
                         type: array
-                      vpcConfig.securityGroupIdSelector:
+                      securityGroupIDSelector:
                         description: SecurityGroupIDsSelector selects references to SecurityGroupID used to set the SecurityGroupIDs.
                         properties:
                           matchControllerRef:
@@ -242,7 +229,14 @@ spec:
                             description: MatchLabels ensures an object with matching labels is selected.
                             type: object
                         type: object
-                      vpcConfig.subnetIdRefs:
+                      securityGroupIDs:
+                        allOf:
+                        - items:
+                            type: string
+                        - items:
+                            type: string
+                        type: array
+                      subnetIDRefs:
                         description: SubnetIDRefs is a list of references to Subnets used to set the SubnetIDs.
                         items:
                           description: A Reference to a named object.
@@ -254,7 +248,7 @@ spec:
                           - name
                           type: object
                         type: array
-                      vpcConfig.subnetIdSelector:
+                      subnetIDSelector:
                         description: SubnetIDsSelector selects references to Subnets used to set the SubnetIDs.
                         properties:
                           matchControllerRef:
@@ -266,10 +260,12 @@ spec:
                             description: MatchLabels ensures an object with matching labels is selected.
                             type: object
                         type: object
-                      vpcConfig.subnetIds:
-                        description: SubnetIDs is the list of IDs for the Subnets.
-                        items:
-                          type: string
+                      subnetIDs:
+                        allOf:
+                        - items:
+                            type: string
+                        - items:
+                            type: string
                         type: array
                     type: object
                 required:

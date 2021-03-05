@@ -58,28 +58,28 @@ type CustomFunctionParameters struct {
 type CustomFunctionVPCConfigParameters struct {
 
 	// SecurityGroupIDs is the list of IDs for the SecurityGroups.
-	SecurityGroupIDs []string `json:"vpcConfig.securityGroupIDs,omitempty"`
+	SecurityGroupIDs []string `json:"securityGroupIDs,omitempty"`
 
 	// SecurityGroupIDRefs is a list of references to SecurityGroups used to set
 	// the SecurityGroupIDs.
 	// +optional
-	SecurityGroupIDRefs []xpv1.Reference `json:"vpcConfig.securityGroupIdRefs,omitempty"`
+	SecurityGroupIDRefs []xpv1.Reference `json:"securityGroupIDRefs,omitempty"`
 
 	// SecurityGroupIDsSelector selects references to SecurityGroupID used
 	// to set the SecurityGroupIDs.
 	// +optional
-	SecurityGroupIDSelector *xpv1.Selector `json:"vpcConfig.securityGroupIdSelector,omitempty"`
+	SecurityGroupIDSelector *xpv1.Selector `json:"securityGroupIDSelector,omitempty"`
 
 	// SubnetIDs is the list of IDs for the Subnets.
-	SubnetIDs []string `json:"vpcConfig.subnetIds,omitempty"`
+	SubnetIDs []string `json:"subnetIDs,omitempty"`
 
 	// SubnetIDRefs is a list of references to Subnets used to set
 	// the SubnetIDs.
 	// +optional
-	SubnetIDRefs []xpv1.Reference `json:"vpcConfig.subnetIdRefs,omitempty"`
+	SubnetIDRefs []xpv1.Reference `json:"subnetIDRefs,omitempty"`
 
 	// SubnetIDsSelector selects references to Subnets used
 	// to set the SubnetIDs.
 	// +optional
-	SubnetIDSelector *xpv1.Selector `json:"vpcConfig.subnetIdSelector,omitempty"`
+	SubnetIDSelector *xpv1.Selector `json:"subnetIDSelector,omitempty"`
 }

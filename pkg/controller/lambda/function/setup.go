@@ -30,10 +30,10 @@ func SetupFunction(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter)
 	name := managed.ControllerName(v1alpha1.FunctionGroupKind)
 	opts := []option{
 		func(e *external) {
-			e.preCreate = preCreate
 			e.preObserve = preObserve
 			e.postObserve = postObserve
 			e.preDelete = preDelete
+			e.preCreate = preCreate
 			e.isUpToDate = isUpToDate
 			e.lateInitialize = LateInitialize
 			u := &updater{client: e.client}
@@ -66,7 +66,18 @@ func LateInitialize(cr *svcapitypes.FunctionParameters, resp *svcsdk.GetFunction
 }
 
 func preCreate(_ context.Context, cr *svcapitypes.Function, obj *svcsdk.CreateFunctionInput) error {
+	if aws.String(meta.GetExternalName(cr)) == nil {
+		meta.SetExternalName(cr, aws.StringValue(cr.Spec.ForProvider.FunctionName))
+	}
 	obj.FunctionName = aws.String(meta.GetExternalName(cr))
+
+	for _, securityGroupID := range cr.Spec.ForProvider.CustomFunctionVPCConfigParameters.SecurityGroupIDs {
+		obj.VpcConfig.SecurityGroupIds = append(obj.VpcConfig.SecurityGroupIds, aws.String(securityGroupID))
+	}
+	for _, subnetID := range cr.Spec.ForProvider.CustomFunctionVPCConfigParameters.SubnetIDs {
+		obj.VpcConfig.SubnetIds = append(obj.VpcConfig.SubnetIds, aws.String(subnetID))
+	}
+
 	return nil
 }
 

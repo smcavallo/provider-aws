@@ -59,6 +59,9 @@ func SetupFunction(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter)
 func LateInitialize(cr *svcapitypes.FunctionParameters, resp *svcsdk.GetFunctionOutput) error {
 	cr.MemorySize = aws.LateInitializeInt64Ptr(cr.MemorySize, resp.Configuration.MemorySize)
 	cr.Timeout = aws.LateInitializeInt64Ptr(cr.Timeout, resp.Configuration.Timeout)
+	if cr.TracingConfig == nil {
+		cr.TracingConfig = &svcapitypes.TracingConfig{Mode: resp.Configuration.TracingConfig.Mode}
+	}
 	return nil
 }
 

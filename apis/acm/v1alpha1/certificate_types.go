@@ -17,7 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/aws/aws-sdk-go-v2/service/acm"
+	acm "github.com/aws/aws-sdk-go-v2/service/acm/types"
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

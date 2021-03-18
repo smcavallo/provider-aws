@@ -1,11 +1,13 @@
 package acm
 
 import (
+	"errors"
 	"strings"
+    "context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
+	"github.com/aws/aws-sdk-go-v2/service/acm/types"
 
 	"github.com/crossplane/provider-aws/apis/acm/v1alpha1"
 	awsclients "github.com/crossplane/provider-aws/pkg/clients"
@@ -14,14 +16,14 @@ import (
 // Client defines the CertificateManager operations
 type Client interface {
 	// GetCertificateRequest(*acm.GetCertificateInput) acm.GetCertificateRequest
-	DescribeCertificateRequest(*acm.DescribeCertificateInput) acm.DescribeCertificateRequest
-	RequestCertificateRequest(*acm.RequestCertificateInput) acm.RequestCertificateRequest
-	DeleteCertificateRequest(*acm.DeleteCertificateInput) acm.DeleteCertificateRequest
-	UpdateCertificateOptionsRequest(*acm.UpdateCertificateOptionsInput) acm.UpdateCertificateOptionsRequest
-	ListTagsForCertificateRequest(*acm.ListTagsForCertificateInput) acm.ListTagsForCertificateRequest
-	AddTagsToCertificateRequest(*acm.AddTagsToCertificateInput) acm.AddTagsToCertificateRequest
-	RenewCertificateRequest(*acm.RenewCertificateInput) acm.RenewCertificateRequest
-	RemoveTagsFromCertificateRequest(*acm.RemoveTagsFromCertificateInput) acm.RemoveTagsFromCertificateRequest
+	DescribeCertificate(ctx context.Context, params *acm.DescribeCertificateInput, optFns ...func(options *acm.Options)) (*acm.DescribeCertificateOutput, error)
+	RequestCertificate(ctx context.Context, params *acm.RequestCertificateInput, optFns ...func(options *acm.Options)) (*acm.RequestCertificateOutput, error)
+	DeleteCertificate(ctx context.Context, params *acm.DeleteCertificateInput, optFns ...func(options *acm.Options)) (*acm.DeleteCertificateOutput, error)
+	UpdateCertificateOptions(ctx context.Context, params *acm.UpdateCertificateOptionsInput, optFns ...func(options *acm.Options)) (*acm.UpdateCertificateOptionsOutput, error)
+	ListTagsForCertificate(ctx context.Context, params *acm.ListTagsForCertificateInput, optFns ...func(options *acm.Options)) (*acm.ListTagsForCertificateOutput, error)
+	AddTagsToCertificate(ctx context.Context, params *acm.AddTagsToCertificateInput, optFns ...func(options *acm.Options)) (*acm.AddTagsToCertificateOutput, error)
+	RenewCertificate(ctx context.Context, params *acm.RenewCertificateInput, optFns ...func(options *acm.Options)) (*acm.RenewCertificateOutput, error)
+	RemoveTagsFromCertificate(ctx context.Context, params *acm.RemoveTagsFromCertificateInput, optFns ...func(options *acm.Options)) (*acm.RemoveTagsFromCertificateOutput, error)
 }
 
 // NewClient returns a new client using AWS credentials as JSON encoded data.
@@ -38,7 +40,7 @@ func GenerateCreateCertificateInput(name string, p *v1alpha1.CertificateParamete
 	}
 
 	if p.CertificateTransparencyLoggingPreference != nil {
-		m.Options = &acm.CertificateOptions{CertificateTransparencyLoggingPreference: *p.CertificateTransparencyLoggingPreference}
+		m.Options = &types.CertificateOptions{CertificateTransparencyLoggingPreference: *p.CertificateTransparencyLoggingPreference}
 	}
 
 	if p.ValidationMethod != nil {
@@ -46,9 +48,9 @@ func GenerateCreateCertificateInput(name string, p *v1alpha1.CertificateParamete
 	}
 
 	if len(p.DomainValidationOptions) != 0 {
-		m.DomainValidationOptions = make([]acm.DomainValidationOption, len(p.DomainValidationOptions))
+		m.DomainValidationOptions = make([]*types.DomainValidationOption, len(p.DomainValidationOptions))
 		for i, val := range p.DomainValidationOptions {
-			m.DomainValidationOptions[i] = acm.DomainValidationOption{
+			m.DomainValidationOptions[i] = &types.DomainValidationOption{
 				DomainName:       aws.String(val.DomainName),
 				ValidationDomain: aws.String(val.ValidationDomain),
 			}
@@ -56,15 +58,15 @@ func GenerateCreateCertificateInput(name string, p *v1alpha1.CertificateParamete
 	}
 
 	if p.SubjectAlternativeNames != nil {
-		m.SubjectAlternativeNames = make([]string, len(p.SubjectAlternativeNames))
+		m.SubjectAlternativeNames = make([]*string, len(p.SubjectAlternativeNames))
 		for i := range p.SubjectAlternativeNames {
-			m.SubjectAlternativeNames[i] = *p.SubjectAlternativeNames[i]
+			m.SubjectAlternativeNames[i] = p.SubjectAlternativeNames[i]
 		}
 	}
 
-	m.Tags = make([]acm.Tag, len(p.Tags))
+	m.Tags = make([]*types.Tag, len(p.Tags))
 	for i, val := range p.Tags {
-		m.Tags[i] = acm.Tag{
+		m.Tags[i] = &types.Tag{
 			Key:   aws.String(val.Key),
 			Value: aws.String(val.Value),
 		}
@@ -73,7 +75,7 @@ func GenerateCreateCertificateInput(name string, p *v1alpha1.CertificateParamete
 }
 
 // GenerateCertificateStatus is used to produce CertificateExternalStatus from acm.certificateStatus
-func GenerateCertificateStatus(certificate acm.CertificateDetail) v1alpha1.CertificateExternalStatus {
+func GenerateCertificateStatus(certificate types.CertificateDetail) v1alpha1.CertificateExternalStatus {
 	return v1alpha1.CertificateExternalStatus{
 		CertificateARN:     aws.StringValue(certificate.CertificateArn),
 		RenewalEligibility: certificate.RenewalEligibility,
@@ -84,7 +86,7 @@ func GenerateCertificateStatus(certificate acm.CertificateDetail) v1alpha1.Certi
 
 // LateInitializeCertificate fills the empty fields in *v1beta1.CertificateParameters with
 // the values seen in iam.Certificate.
-func LateInitializeCertificate(in *v1alpha1.CertificateParameters, certificate *acm.CertificateDetail) { // nolint:gocyclo
+func LateInitializeCertificate(in *v1alpha1.CertificateParameters, certificate *types.CertificateDetail) { // nolint:gocyclo
 	if certificate == nil {
 		return
 	}
@@ -106,7 +108,7 @@ func LateInitializeCertificate(in *v1alpha1.CertificateParameters, certificate *
 	if len(in.SubjectAlternativeNames) == 0 && len(certificate.SubjectAlternativeNames) != 0 {
 		in.SubjectAlternativeNames = make([]*string, len(certificate.SubjectAlternativeNames))
 		for i := range certificate.SubjectAlternativeNames {
-			in.SubjectAlternativeNames[i] = &certificate.SubjectAlternativeNames[i]
+			in.SubjectAlternativeNames[i] = certificate.SubjectAlternativeNames[i]
 		}
 	}
 
@@ -123,7 +125,7 @@ func LateInitializeCertificate(in *v1alpha1.CertificateParameters, certificate *
 }
 
 // IsCertificateUpToDate checks whether there is a change in any of the modifiable fields.
-func IsCertificateUpToDate(p v1alpha1.CertificateParameters, cd acm.CertificateDetail, tags []acm.Tag) bool { // nolint:gocyclo
+func IsCertificateUpToDate(p v1alpha1.CertificateParameters, cd types.CertificateDetail, tags []types.Tag) bool { // nolint:gocyclo
 
 	if *p.CertificateTransparencyLoggingPreference != cd.Options.CertificateTransparencyLoggingPreference {
 		return false
@@ -149,8 +151,11 @@ func IsCertificateUpToDate(p v1alpha1.CertificateParameters, cd acm.CertificateD
 
 // IsErrorNotFound returns true if the error code indicates that the item was not found
 func IsErrorNotFound(err error) bool {
-	if acmErr, ok := err.(awserr.Error); ok && acmErr.Code() == acm.ErrCodeResourceNotFoundException {
-		return true
+	if err != nil {
+		var rne *types.ResourceNotFoundException
+		if errors.As(err, &rne) {
+			return true
+		}
 	}
 	return false
 }

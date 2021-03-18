@@ -1,15 +1,19 @@
 module github.com/crossplane/provider-aws
 
-go 1.13
+go 1.15
 
 require (
 	github.com/aws/aws-sdk-go v1.35.5
-	github.com/aws/aws-sdk-go-v2 v0.23.0
+	github.com/aws/aws-sdk-go-v2 v0.26.0
+	github.com/aws/aws-sdk-go-v2/service/acm v0.26.0
+	github.com/aws/aws-sdk-go-v2/service/acmpca v0.26.0
+	github.com/aws/aws-sdk-go-v2/service/sqs v0.26.0
+	github.com/awslabs/smithy-go v0.1.0 // indirect
 	github.com/crossplane/crossplane-runtime v0.12.1-0.20210201221909-45bc6d50351e
 	github.com/crossplane/crossplane-tools v0.0.0-20201201125637-9ddc70edfd0d
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/go-ini/ini v1.46.0
-	github.com/google/go-cmp v0.5.2
+	github.com/google/go-cmp v0.5.4
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mitchellh/copystructure v1.0.0
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect

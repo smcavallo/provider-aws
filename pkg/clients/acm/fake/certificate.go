@@ -17,7 +17,10 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go-v2/service/acm"
+	"github.com/aws/aws-sdk-go-v2/service/acm/types"
 
 	clientset "github.com/crossplane/provider-aws/pkg/clients/acm"
 )
@@ -26,53 +29,38 @@ import (
 var _ clientset.Client = (*MockCertificateClient)(nil)
 
 // MockCertificateClient is a type that implements all the methods for Certificate Client interface
-type MockCertificateClient struct {
-	MockDescribeCertificateRequest       func(*acm.DescribeCertificateInput) acm.DescribeCertificateRequest
-	MockAddTagsToCertificateRequest      func(*acm.AddTagsToCertificateInput) acm.AddTagsToCertificateRequest
-	MockRequestCertificateRequest        func(*acm.RequestCertificateInput) acm.RequestCertificateRequest
-	MockDeleteCertificateRequest         func(*acm.DeleteCertificateInput) acm.DeleteCertificateRequest
-	MockUpdateCertificateOptionsRequest  func(*acm.UpdateCertificateOptionsInput) acm.UpdateCertificateOptionsRequest
-	MockListTagsForCertificateRequest    func(*acm.ListTagsForCertificateInput) acm.ListTagsForCertificateRequest
-	MockRenewCertificateRequest          func(*acm.RenewCertificateInput) acm.RenewCertificateRequest
-	MockRemoveTagsFromCertificateRequest func(*acm.RemoveTagsFromCertificateInput) acm.RemoveTagsFromCertificateRequest
+type MockCertificateClient interface {
+	// GetCertificateRequest(*acm.GetCertificateInput) acm.GetCertificateRequest
+	DescribeCertificate(ctx context.Context, params *acm.DescribeCertificateInput, optFns ...func(options *acm.Options)) (*acm.DescribeCertificateOutput, error)
+	RequestCertificate(ctx context.Context, params *acm.RequestCertificateInput, optFns ...func(options *acm.Options)) (*acm.RequestCertificateOutput, error)
+	DeleteCertificate(ctx context.Context, params *acm.DeleteCertificateInput, optFns ...func(options *acm.Options)) (*acm.DeleteCertificateOutput, error)
+	UpdateCertificateOptions(ctx context.Context, params *acm.UpdateCertificateOptionsInput, optFns ...func(options *acm.Options)) (*acm.UpdateCertificateOptionsOutput, error)
+	ListTagsForCertificate(ctx context.Context, params *acm.ListTagsForCertificateInput, optFns ...func(options *acm.Options)) (*acm.ListTagsForCertificateOutput, error)
+	AddTagsToCertificate(ctx context.Context, params *acm.AddTagsToCertificateInput, optFns ...func(options *acm.Options)) (*acm.AddTagsToCertificateOutput, error)
+	RenewCertificate(ctx context.Context, params *acm.RenewCertificateInput, optFns ...func(options *acm.Options)) (*acm.RenewCertificateOutput, error)
+	RemoveTagsFromCertificate(ctx context.Context, params *acm.RemoveTagsFromCertificateInput, optFns ...func(options *acm.Options)) (*acm.RemoveTagsFromCertificateOutput, error)
 }
 
-// DescribeCertificateRequest mocks DescribeCertificateRequest method
-func (m *MockCertificateClient) DescribeCertificateRequest(input *acm.DescribeCertificateInput) acm.DescribeCertificateRequest {
-	return m.MockDescribeCertificateRequest(input)
+type mockDescribeCertificateAPI func(ctx context.Context, params *acm.DescribeCertificateInput, optFns ...func(options *acm.Options)) (*acm.DescribeCertificateOutput, error)
+
+func (m mockDescribeCertificateAPI) DescribeCertificate(ctx context.Context, params *acm.DescribeCertificateInput, optFns ...func(options *acm.Options)) (*acm.DescribeCertificateOutput, error){
+	return m(ctx, params, optFns...)
 }
 
-// RequestCertificateRequest mocks RequestCertificateRequest method
-func (m *MockCertificateClient) RequestCertificateRequest(input *acm.RequestCertificateInput) acm.RequestCertificateRequest {
-	return m.MockRequestCertificateRequest(input)
+type mockRequestCertificateAPI func(ctx context.Context, params *acm.RequestCertificateInput, optFns ...func(options *acm.Options)) (*acm.RequestCertificateOutput, error)
+
+func (m mockRequestCertificateAPI) RequestCertificate(ctx context.Context, params *acm.RequestCertificateInput, optFns ...func(options *acm.Options)) (*acm.RequestCertificateOutput, error){
+	return m(ctx, params, optFns...)
 }
 
-// DeleteCertificateRequest mocks DeleteCertificateRequest method
-func (m *MockCertificateClient) DeleteCertificateRequest(input *acm.DeleteCertificateInput) acm.DeleteCertificateRequest {
-	return m.MockDeleteCertificateRequest(input)
+type mockDeleteCertificateAPI func(ctx context.Context, params *acm.DeleteCertificateInput, optFns ...func(options *acm.Options)) (*acm.DeleteCertificateOutput, error)
+
+func (m mockDeleteCertificateAPI) DeleteCertificateCertificate(ctx context.Context, params *acm.DeleteCertificateInput, optFns ...func(options *acm.Options)) (*acm.DeleteCertificateOutput, error){
+	return m(ctx, params, optFns...)
 }
 
-// UpdateCertificateOptionsRequest mocks UpdateCertificateOptionsRequest method
-func (m *MockCertificateClient) UpdateCertificateOptionsRequest(input *acm.UpdateCertificateOptionsInput) acm.UpdateCertificateOptionsRequest {
-	return m.MockUpdateCertificateOptionsRequest(input)
-}
+type mockUpdateCertificateOptionsAPI func(ctx context.Context, params *acm.UpdateCertificateOptionsInput, optFns ...func(options *acm.Options)) (*acm.UpdateCertificateOptionsOutput, error)
 
-// ListTagsForCertificateRequest mocks ListTagsForCertificateRequest method
-func (m *MockCertificateClient) ListTagsForCertificateRequest(input *acm.ListTagsForCertificateInput) acm.ListTagsForCertificateRequest {
-	return m.MockListTagsForCertificateRequest(input)
-}
-
-// RenewCertificateRequest mocks RenewCertificateRequest method
-func (m *MockCertificateClient) RenewCertificateRequest(input *acm.RenewCertificateInput) acm.RenewCertificateRequest {
-	return m.MockRenewCertificateRequest(input)
-}
-
-// RemoveTagsFromCertificateRequest mocks RemoveTagsFromCertificateRequest method
-func (m *MockCertificateClient) RemoveTagsFromCertificateRequest(input *acm.RemoveTagsFromCertificateInput) acm.RemoveTagsFromCertificateRequest {
-	return m.MockRemoveTagsFromCertificateRequest(input)
-}
-
-// AddTagsToCertificateRequest mocks AddTagsToCertificateRequest method
-func (m *MockCertificateClient) AddTagsToCertificateRequest(input *acm.AddTagsToCertificateInput) acm.AddTagsToCertificateRequest {
-	return m.MockAddTagsToCertificateRequest(input)
+func (m mockUpdateCertificateOptionsAPI) UpdateCertificateOptions(ctx context.Context, params *acm.UpdateCertificateOptionsInput, optFns ...func(options *acm.Options)) (*acm.UpdateCertificateOptionsOutput, error){
+	return m(ctx, params, optFns...)
 }

@@ -188,7 +188,7 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 	// is idempotent.
 	if _, err := e.client.CreateTags(ctx, &awsec2.CreateTagsInput{
 		Resources: []string{meta.GetExternalName(cr)},
-		Tags:      v1beta1.GenerateEC2Tags(cr.Spec.ForProvider.Tags),
+		Tags:      ec2.GenerateEC2Tags(cr.Spec.ForProvider.Tags),
 	}); err != nil {
 		return managed.ExternalUpdate{}, awsclient.Wrap(err, errCreateTags)
 	}

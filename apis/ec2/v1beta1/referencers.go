@@ -128,7 +128,7 @@ func (mg *RouteTable) ResolveReferences(ctx context.Context, c client.Reader) er
 
 	// Resolve spec.forProvider.vpcId
 	rsp, err := r.Resolve(ctx, reference.ResolutionRequest{
-		CurrentValue: aws.StringValue(mg.Spec.ForProvider.VPCID),
+		CurrentValue: aws.ToString(mg.Spec.ForProvider.VPCID),
 		Reference:    mg.Spec.ForProvider.VPCIDRef,
 		Selector:     mg.Spec.ForProvider.VPCIDSelector,
 		To:           reference.To{Managed: &VPC{}, List: &VPCList{}},
@@ -143,7 +143,7 @@ func (mg *RouteTable) ResolveReferences(ctx context.Context, c client.Reader) er
 	// Resolve spec.forProvider.routes[].gatewayId
 	for i := range mg.Spec.ForProvider.Routes {
 		rsp, err := r.Resolve(ctx, reference.ResolutionRequest{
-			CurrentValue: aws.StringValue(mg.Spec.ForProvider.Routes[i].GatewayID),
+			CurrentValue: aws.ToString(mg.Spec.ForProvider.Routes[i].GatewayID),
 			Reference:    mg.Spec.ForProvider.Routes[i].GatewayIDRef,
 			Selector:     mg.Spec.ForProvider.Routes[i].GatewayIDSelector,
 			To:           reference.To{Managed: &InternetGateway{}, List: &InternetGatewayList{}},
@@ -159,7 +159,7 @@ func (mg *RouteTable) ResolveReferences(ctx context.Context, c client.Reader) er
 	// Resolve spec.forProvider.routes[].natGatewayId
 	for i := range mg.Spec.ForProvider.Routes {
 		rsp, err := r.Resolve(ctx, reference.ResolutionRequest{
-			CurrentValue: aws.StringValue(mg.Spec.ForProvider.Routes[i].NatGatewayID),
+			CurrentValue: aws.ToString(mg.Spec.ForProvider.Routes[i].NatGatewayID),
 			Reference:    mg.Spec.ForProvider.Routes[i].NatGatewayIDRef,
 			Selector:     mg.Spec.ForProvider.Routes[i].NatGatewayIDSelector,
 			To:           reference.To{Managed: &NATGateway{}, List: &NATGatewayList{}},
@@ -175,7 +175,7 @@ func (mg *RouteTable) ResolveReferences(ctx context.Context, c client.Reader) er
 	// Resolve spec.associations[].subnetId
 	for i := range mg.Spec.ForProvider.Associations {
 		rsp, err := r.Resolve(ctx, reference.ResolutionRequest{
-			CurrentValue: aws.StringValue(mg.Spec.ForProvider.Associations[i].SubnetID),
+			CurrentValue: aws.ToString(mg.Spec.ForProvider.Associations[i].SubnetID),
 			Reference:    mg.Spec.ForProvider.Associations[i].SubnetIDRef,
 			Selector:     mg.Spec.ForProvider.Associations[i].SubnetIDSelector,
 			To:           reference.To{Managed: &Subnet{}, List: &SubnetList{}},
@@ -197,7 +197,7 @@ func (mg *NATGateway) ResolveReferences(ctx context.Context, c client.Reader) er
 
 	// // Resolve spec.subnetId
 	subnetIDResponse, err := r.Resolve(ctx, reference.ResolutionRequest{
-		CurrentValue: aws.StringValue(mg.Spec.ForProvider.SubnetID),
+		CurrentValue: aws.ToString(mg.Spec.ForProvider.SubnetID),
 		Reference:    mg.Spec.ForProvider.SubnetIDRef,
 		Selector:     mg.Spec.ForProvider.SubnetIDSelector,
 		To:           reference.To{Managed: &Subnet{}, List: &SubnetList{}},
@@ -211,7 +211,7 @@ func (mg *NATGateway) ResolveReferences(ctx context.Context, c client.Reader) er
 
 	// // Resolve spec.elasticIp
 	AllocationIDRespone, err := r.Resolve(ctx, reference.ResolutionRequest{
-		CurrentValue: aws.StringValue(mg.Spec.ForProvider.AllocationID),
+		CurrentValue: aws.ToString(mg.Spec.ForProvider.AllocationID),
 		Reference:    mg.Spec.ForProvider.AllocationIDRef,
 		Selector:     mg.Spec.ForProvider.AllocationIDSelector,
 		To:           reference.To{Managed: &v1alpha1.ElasticIP{}, List: &v1alpha1.ElasticIPList{}},

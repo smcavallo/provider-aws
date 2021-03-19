@@ -46,9 +46,9 @@ func IsNatGatewayNotFoundErr(err error) bool {
 // GenerateNATGatewayObservation is used to produce v1beta1.NatGatewayObservation from
 // ec2types.NatGateway.
 func GenerateNATGatewayObservation(nat ec2types.NatGateway) v1beta1.NATGatewayObservation {
-	addresses := make([]v1alpha1.NATGatewayAddress, len(nat.NatGatewayAddresses))
+	addresses := make([]v1beta1.NATGatewayAddress, len(nat.NatGatewayAddresses))
 	for k, a := range nat.NatGatewayAddresses {
-		addresses[k] = v1alpha1.NATGatewayAddress{
+		addresses[k] = v1beta1.NATGatewayAddress{
 			AllocationID:       aws.ToString(a.AllocationId),
 			NetworkInterfaceID: aws.ToString(a.NetworkInterfaceId),
 			PrivateIP:          aws.ToString(a.PrivateIp),

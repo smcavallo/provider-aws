@@ -104,7 +104,7 @@ func GenerateVpcObservation(vpc ec2types.Vpc) v1beta1.VPCObservation {
 
 // LateInitializeVPC fills the empty fields in *v1beta1.VPCParameters with
 // the values seen in ec2.Vpc and ec2.DescribeVpcAttributeOutput.
-func LateInitializeVPC(in *v1beta1.VPCParameters, v *ec2types.Vpc, attributes *ec2types.DescribeVpcAttributeOutput) { // nolint:gocyclo
+func LateInitializeVPC(in *v1beta1.VPCParameters, v *ec2types.Vpc, attributes *ec2.DescribeVpcAttributeOutput) { // nolint:gocyclo
 	if v == nil {
 		return
 	}
@@ -112,9 +112,9 @@ func LateInitializeVPC(in *v1beta1.VPCParameters, v *ec2types.Vpc, attributes *e
 	in.CIDRBlock = awsclients.LateInitializeString(in.CIDRBlock, v.CidrBlock)
 	in.InstanceTenancy = awsclients.LateInitializeStringPtr(in.InstanceTenancy, aws.String(string(v.InstanceTenancy)))
 	if attributes.EnableDnsHostnames != nil {
-		in.EnableDNSHostNames = awsclients.LateInitializeBoolPtr(in.EnableDNSHostNames, attributes.EnableDnsHostnames.Value)
+		in.EnableDNSHostNames = awsclients.LateInitializeBoolPtr(in.EnableDNSHostNames, aws.Bool(attributes.EnableDnsHostnames.Value))
 	}
 	if attributes.EnableDnsHostnames != nil {
-		in.EnableDNSSupport = awsclients.LateInitializeBoolPtr(in.EnableDNSSupport, attributes.EnableDnsSupport.Value)
+		in.EnableDNSSupport = awsclients.LateInitializeBoolPtr(in.EnableDNSSupport, aws.Bool(attributes.EnableDnsSupport.Value))
 	}
 }

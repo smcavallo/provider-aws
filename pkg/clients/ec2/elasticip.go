@@ -84,29 +84,29 @@ func IsStandardDomain(e v1alpha1.ElasticIPParameters) bool {
 }
 
 // GenerateEC2Tags generates a tag array with type that EC2 client expects.
-func GenerateEC2Tags(tags []v1alpha1.Tag) []ec2.Tag {
-	res := make([]ec2.Tag, len(tags))
+func GenerateEC2Tags(tags []v1alpha1.Tag) []ec2types.Tag {
+	res := make([]ec2types.Tag, len(tags))
 	for i, t := range tags {
-		res[i] = ec2.Tag{Key: aws.String(t.Key), Value: aws.String(t.Value)}
+		res[i] = ec2types.Tag{Key: aws.String(t.Key), Value: aws.String(t.Value)}
 	}
 	return res
 }
 
 // BuildFromEC2Tags returns a list of tags, off of the given ec2 tags
-func BuildFromEC2Tags(tags []ec2.Tag) []v1alpha1.Tag {
+func BuildFromEC2Tags(tags []ec2types.Tag) []v1alpha1.Tag {
 	if len(tags) < 1 {
 		return nil
 	}
 	res := make([]v1alpha1.Tag, len(tags))
 	for i, t := range tags {
-		res[i] = v1alpha1.Tag{Key: aws.StringValue(t.Key), Value: aws.StringValue(t.Value)}
+		res[i] = v1alpha1.Tag{Key: aws.ToString(t.Key), Value: aws.ToString(t.Value)}
 	}
 
 	return res
 }
 
-// CompareTags compares arrays of v1beta1.Tag and ec2.Tag
-func CompareTags(tags []v1alpha1.Tag, ec2Tags []ec2.Tag) bool {
+// CompareTags compares arrays of v1beta1.Tag and ec2types.Tag
+func CompareTags(tags []v1alpha1.Tag, ec2Tags []ec2types.Tag) bool {
 	if len(tags) != len(ec2Tags) {
 		return false
 	}
@@ -122,8 +122,8 @@ func CompareTags(tags []v1alpha1.Tag, ec2Tags []ec2.Tag) bool {
 	return true
 }
 
-// SortTags sorts array of v1beta1.Tag and ec2.Tag on 'Key'
-func SortTags(tags []v1alpha1.Tag, ec2Tags []ec2.Tag) {
+// SortTags sorts array of v1beta1.Tag and ec2types.Tag on 'Key'
+func SortTags(tags []v1alpha1.Tag, ec2Tags []ec2types.Tag) {
 	sort.Slice(tags, func(i, j int) bool {
 		return tags[i].Key < tags[j].Key
 	})

@@ -123,19 +123,6 @@ func (e *external) Observe(ctx context.Context, mgd resource.Managed) (managed.E
 
 	observed := response.Vpcs[0]
 
-	// update the CRD spec for any new values from provider
-	current := cr.Spec.ForProvider.DeepCopy()
-	ec2.LateInitializeVPC(&cr.Spec.ForProvider, &observed)
-
-	switch observed.State {
-	case awsec2types.VpcStateAvailable:
-		cr.SetConditions(xpv1.Available())
-	case awsec2types.VpcStatePending:
-		cr.SetConditions(xpv1.Creating())
-	}
-
-	cr.Status.AtProvider = ec2.GenerateVpcObservation(observed)
-
 	o := awsec2.DescribeVpcAttributeOutput{}
 
 	for _, input := range []awsec2types.VpcAttributeName{
@@ -160,12 +147,25 @@ func (e *external) Observe(ctx context.Context, mgd resource.Managed) (managed.E
 		}
 	}
 
+	// update the CRD spec for any new values from provider
+	current := cr.Spec.ForProvider.DeepCopy()
 	ec2.LateInitializeVPC(&cr.Spec.ForProvider, &observed, &o)
 
 	switch observed.State {
-	case awsec2.VpcStateAvailable:
+	case awsec2types.VpcStateAvailable:
 		cr.SetConditions(xpv1.Available())
-	case awsec2.VpcStatePending:
+	case awsec2types.VpcStatePending:
+		cr.SetConditions(xpv1.Creating())
+	}
+
+	cr.Status.AtProvider = ec2.GenerateVpcObservation(observed)
+
+	ec2.LateInitializeVPC(&cr.Spec.ForProvider, &observed, &o)
+
+	switch observed.State {
+	case awsec2types.VpcStateAvailable:
+		cr.SetConditions(xpv1.Available())
+	case awsec2types.VpcStatePending:
 		cr.SetConditions(xpv1.Creating())
 	}
 
@@ -218,7 +218,7 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 			VpcId:              aws.String(meta.GetExternalName(cr)),
 			EnableDnsHostnames: &awsec2types.AttributeBooleanValue{Value: aws.ToBool(cr.Spec.ForProvider.EnableDNSHostNames)},
 		}
-		if _, err := e.client.ModifyVpcAttribute(ctxm modifyInput); err != nil {
+		if _, err := e.client.ModifyVpcAttribute(ctx, modifyInput); err != nil {
 			return managed.ExternalUpdate{}, awsclient.Wrap(err, errModifyVPCAttributes)
 		}
 	}

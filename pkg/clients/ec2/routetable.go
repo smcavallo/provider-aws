@@ -162,7 +162,7 @@ func LateInitializeRT(in *v1beta1.RouteTableParameters, rt *ec2types.RouteTable)
 // CreateRTPatch creates a *v1beta1.RouteTableParameters that has only the changed
 // values between the target *v1beta1.RouteTableParameters and the current
 // *ec2.RouteTable
-func CreateRTPatch(in ec2types.RouteTable, target v1alpha4.RouteTableParameters) (*v1beta1.RouteTableParameters, error) {
+func CreateRTPatch(in ec2types.RouteTable, target v1beta1.RouteTableParameters) (*v1beta1.RouteTableParameters, error) {
 	targetCopy := target.DeepCopy()
 	currentParams := &v1beta1.RouteTableParameters{}
 

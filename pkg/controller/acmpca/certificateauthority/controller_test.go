@@ -24,6 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 	awsacmpca "github.com/aws/aws-sdk-go-v2/service/acmpca"
+	"github.com/aws/aws-sdk-go-v2/service/acmpca/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 
@@ -81,7 +82,7 @@ func withCertificateAuthorityArn() certificateAuthorityModifier {
 
 func withCertificateAuthorityType() certificateAuthorityModifier {
 	return func(r *v1alpha1.CertificateAuthority) {
-		r.Spec.ForProvider.Type = awsacmpca.CertificateAuthorityTypeRoot
+		r.Spec.ForProvider.Type = types.CertificateAuthorityTypeRoot
 		r.Status.AtProvider.CertificateAuthorityARN = certificateAuthorityArn
 		meta.SetExternalName(r, certificateAuthorityArn)
 	}
@@ -121,8 +122,8 @@ func TestObserve(t *testing.T) {
 		"ValidInput": {
 			args: args{
 				acmpca: &fake.MockCertificateAuthorityClient{
-					MockDescribeCertificateAuthorityRequest: func(*awsacmpca.DescribeCertificateAuthorityInput) awsacmpca.DescribeCertificateAuthorityRequest {
-						return awsacmpca.DescribeCertificateAuthorityRequest{
+					MockDescribeCertificateAuthority: func(*awsacmpca.DescribeCertificateAuthorityInput) awsacmpca.DescribeCertificateAuthority {
+						return awsacmpca.DescribeCertificateAuthority
 							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsacmpca.DescribeCertificateAuthorityOutput{
 								CertificateAuthority: &awsacmpca.CertificateAuthority{
 									Arn:  aws.String(certificateAuthorityArn),
@@ -155,11 +156,11 @@ func TestObserve(t *testing.T) {
 							}},
 						}
 					},
-					MockListTagsRequest: func(input *awsacmpca.ListTagsInput) awsacmpca.ListTagsRequest {
-						return awsacmpca.ListTagsRequest{
+					MockListTagsRequest: func(input *awsacmpca.ListTagsInput) awsacmpca.ListTags {
+						return awsacmpca.ListTags{
 							Request: &aws.Request{HTTPRequest: &http.Request{}, Retryer: aws.NoOpRetryer{}, Data: &awsacmpca.ListTagsOutput{
 								NextToken: aws.String(nextToken),
-								Tags:      []awsacmpca.Tag{{}},
+								Tags:      []types.Tag{{}},
 							}},
 						}
 					},

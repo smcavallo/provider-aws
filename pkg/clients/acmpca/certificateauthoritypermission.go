@@ -17,15 +17,16 @@ limitations under the License.
 package acmpca
 
 import (
+	"context"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/acmpca"
-)
+	)
 
 // CAPermissionClient defines the CertificateManager operations
 type CAPermissionClient interface {
-	CreatePermissionRequest(*acmpca.CreatePermissionInput) acmpca.CreatePermissionRequest
-	DeletePermissionRequest(*acmpca.DeletePermissionInput) acmpca.DeletePermissionRequest
-	ListPermissionsRequest(*acmpca.ListPermissionsInput) acmpca.ListPermissionsRequest
+	CreatePermission(ctx context.Context, params *acmpca.CreatePermissionInput, optFns ...func(options *acmpca.Options)) (*acmpca.CreatePermissionOutput, error)
+	DeletePermission(ctx context.Context, params *acmpca.DeletePermissionInput, optFns ...func(options *acmpca.Options)) (*acmpca.DeletePermissionOutput, error)
+	ListPermissions(ctx context.Context, params *acmpca.ListPermissionsInput, optFns ...func(options *acmpca.Options)) (*acmpca.ListPermissionsOutput, error)
 }
 
 // NewCAPermissionClient returns a new client using AWS credentials as JSON encoded data.

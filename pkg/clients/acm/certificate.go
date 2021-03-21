@@ -78,7 +78,7 @@ func GenerateCreateCertificateInput(name string, p *v1alpha1.CertificateParamete
 // GenerateCertificateStatus is used to produce CertificateExternalStatus from acm.certificateStatus
 func GenerateCertificateStatus(certificate types.CertificateDetail) v1alpha1.CertificateExternalStatus {
 	return v1alpha1.CertificateExternalStatus{
-		CertificateARN:     *certificate.CertificateArn,
+		CertificateARN:     aws.ToString(certificate.CertificateArn),
 		RenewalEligibility: certificate.RenewalEligibility,
 		Status:             certificate.Status,
 		Type:               certificate.Type,
@@ -147,7 +147,7 @@ func IsCertificateUpToDate(p v1alpha1.CertificateParameters, cd types.Certificat
 		}
 	}
 
-	return !*p.RenewCertificate
+	return !aws.ToBool(p.RenewCertificate)
 }
 
 // IsErrorNotFound returns true if the error code indicates that the item was not found

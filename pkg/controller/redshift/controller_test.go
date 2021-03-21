@@ -38,12 +38,13 @@ import (
 )
 
 var (
-	masterUsername = "root"
-	replaceMe      = "replace-me!"
-	errBoom        = errors.New("boom")
-	nodeType       = "dc1.large"
-	singleNode     = "single-node"
-	name           = "redshift-test"
+	masterUsername    = "root"
+	replaceMe         = "replace-me!"
+	errBoom           = errors.New("boom")
+	nodeType          = "dc1.large"
+	singleNode        = "single-node"
+	name              = "redshift-test"
+	vpcSecurityGroups = []awsredshifttypes.VpcSecurityGroupMembership{{VpcSecurityGroupId: aws.String("id-sg")}}
 )
 
 type args struct {
@@ -78,10 +79,19 @@ func cluster(m ...redshiftModifier) *v1alpha1.Cluster {
 	cr := &v1alpha1.Cluster{
 		Spec: v1alpha1.ClusterSpec{
 			ForProvider: v1alpha1.ClusterParameters{
-				MasterUsername: masterUsername,
-				NodeType:       nodeType,
-				ClusterType:    &singleNode,
-				NumberOfNodes:  aws.Int32(1),
+				MasterUsername:      masterUsername,
+				NodeType:            nodeType,
+				ClusterType:         &singleNode,
+				NumberOfNodes:       aws.Int32(1),
+				VPCSecurityGroupIDs: []string{"id-sg"},
+				// Late Initialize
+				AllowVersionUpgrade: aws.Bool(false),
+				AutomatedSnapshotRetentionPeriod: aws.Int32(0),
+				Encrypted: aws.Bool(false),
+				EnhancedVPCRouting: aws.Bool(false),
+				ManualSnapshotRetentionPeriod: aws.Int32(0),
+				PubliclyAccessible: aws.Bool(false),
+
 			},
 		},
 	}
@@ -117,6 +127,7 @@ func TestObserve(t *testing.T) {
 									ClusterIdentifier: &name,
 									MasterUsername:    &masterUsername,
 									NodeType:          &nodeType,
+									VpcSecurityGroups: vpcSecurityGroups,
 								},
 							},
 						}, nil
@@ -147,6 +158,7 @@ func TestObserve(t *testing.T) {
 									ClusterIdentifier: &name,
 									MasterUsername:    &masterUsername,
 									NodeType:          &nodeType,
+									VpcSecurityGroups: vpcSecurityGroups,
 								},
 							},
 						}, nil
@@ -177,6 +189,7 @@ func TestObserve(t *testing.T) {
 									ClusterIdentifier: &name,
 									MasterUsername:    &masterUsername,
 									NodeType:          &nodeType,
+									VpcSecurityGroups: vpcSecurityGroups,
 								},
 							},
 						}, nil
@@ -232,11 +245,12 @@ func TestObserve(t *testing.T) {
 						return &awsredshift.DescribeClustersOutput{
 							Clusters: []awsredshifttypes.Cluster{
 								{
-									ClusterStatus:     aws.String(string(v1alpha1.StateFailed)),
+									ClusterStatus:     aws.String(v1alpha1.StateCreating),
 									NumberOfNodes:     1,
 									ClusterIdentifier: &name,
 									MasterUsername:    &masterUsername,
 									NodeType:          &nodeType,
+									VpcSecurityGroups: vpcSecurityGroups,
 								},
 							},
 						}, nil

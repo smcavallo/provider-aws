@@ -40,7 +40,7 @@ func BuildFromEC2Tags(tags []ec2types.Tag) []Tag {
 	}
 	res := make([]Tag, len(tags))
 	for i, t := range tags {
-		res[i] = Tag{*t.Key, *t.Value}
+		res[i] = Tag{aws.ToString(t.Key), aws.ToString(t.Value)}
 	}
 
 	return res

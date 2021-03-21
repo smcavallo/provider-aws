@@ -121,6 +121,9 @@ func LateInitialize(in *v1alpha1.ClusterParameters, cl *redshifttypes.Cluster) {
 		for i, v := range cl.VpcSecurityGroups {
 			s[i] = aws.ToString(v.VpcSecurityGroupId)
 		}
+		if in.VPCSecurityGroupIDs == nil {
+			in.VPCSecurityGroupIDs = make([]string, len(cl.VpcSecurityGroups))
+		}
 		in.VPCSecurityGroupIDs = s
 	}
 }

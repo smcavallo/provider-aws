@@ -206,7 +206,7 @@ func TestIsCertificateUpToDate(t *testing.T) {
 			},
 			want: true,
 		},
-		"DifferentFields": {
+		"DifferentCertificateDetail": {
 			args: args{
 				cd: acmtypes.CertificateDetail{
 					Options: &acmtypes.CertificateOptions{CertificateTransparencyLoggingPreference: acmtypes.CertificateTransparencyLoggingPreferenceEnabled},
@@ -225,6 +225,66 @@ func TestIsCertificateUpToDate(t *testing.T) {
 				}},
 			},
 			want: false,
+		},
+		"DifferentTags": {
+			args: args{
+				cd: acmtypes.CertificateDetail{
+					Options: &acmtypes.CertificateOptions{CertificateTransparencyLoggingPreference: acmtypes.CertificateTransparencyLoggingPreferenceDisabled},
+				},
+				p: v1alpha1.CertificateParameters{
+					CertificateTransparencyLoggingPreference: &certificateTransparencyLoggingPreference,
+					RenewCertificate:                         aws.Bool(false),
+					Tags: []v1alpha1.Tag{{
+						Key:   "key1",
+						Value: "value1",
+					}},
+				},
+				tags: []acmtypes.Tag{{
+					Key:   aws.String("key2"),
+					Value: aws.String("value2"),
+				}},
+			},
+			want: false,
+		},
+		"RenewCertificateTrueReturnsFalse": {
+			args: args{
+				cd: acmtypes.CertificateDetail{
+					Options: &acmtypes.CertificateOptions{CertificateTransparencyLoggingPreference: acmtypes.CertificateTransparencyLoggingPreferenceDisabled},
+				},
+				p: v1alpha1.CertificateParameters{
+					CertificateTransparencyLoggingPreference: &certificateTransparencyLoggingPreference,
+					RenewCertificate:                         aws.Bool(true),
+					Tags: []v1alpha1.Tag{{
+						Key:   "key1",
+						Value: "value1",
+					}},
+				},
+				tags: []acmtypes.Tag{{
+					Key:   aws.String("key1"),
+					Value: aws.String("value1"),
+				}},
+			},
+			want: false,
+		},
+		"RenewCertificateFalseReturnsTrue": {
+			args: args{
+				cd: acmtypes.CertificateDetail{
+					Options: &acmtypes.CertificateOptions{CertificateTransparencyLoggingPreference: acmtypes.CertificateTransparencyLoggingPreferenceDisabled},
+				},
+				p: v1alpha1.CertificateParameters{
+					CertificateTransparencyLoggingPreference: &certificateTransparencyLoggingPreference,
+					RenewCertificate:                         aws.Bool(false),
+					Tags: []v1alpha1.Tag{{
+						Key:   "key1",
+						Value: "value1",
+					}},
+				},
+				tags: []acmtypes.Tag{{
+					Key:   aws.String("key1"),
+					Value: aws.String("value1"),
+				}},
+			},
+			want: true,
 		},
 	}
 

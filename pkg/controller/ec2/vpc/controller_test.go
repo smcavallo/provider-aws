@@ -130,12 +130,16 @@ func TestObserve(t *testing.T) {
 				cr: vpc(withSpec(v1beta1.VPCParameters{
 					InstanceTenancy: aws.String(tenancyDefault),
 					CIDRBlock:       cidr,
+					EnableDNSHostNames: aws.Bool(false),
+					EnableDNSSupport: aws.Bool(false),
 				}), withExternalName(vpcID)),
 			},
 			want: want{
 				cr: vpc(withSpec(v1beta1.VPCParameters{
 					InstanceTenancy: aws.String(tenancyDefault),
 					CIDRBlock:       cidr,
+					EnableDNSHostNames: aws.Bool(false),
+					EnableDNSSupport: aws.Bool(false),
 				}), withStatus(v1beta1.VPCObservation{
 					VPCState: "available",
 				}), withExternalName(vpcID),

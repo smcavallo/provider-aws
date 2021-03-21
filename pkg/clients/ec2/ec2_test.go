@@ -280,7 +280,7 @@ func Test_SecurityGroup_BuildEC2Permissions(t *testing.T) {
 	res := GenerateEC2Permissions([]v1beta1.IPPermission{
 		{
 			FromPort: aws.Int32(8080),
-			ToPort: aws.Int32(8080),
+			ToPort:   aws.Int32(8080),
 			IPRanges: []v1beta1.IPRange{
 				{CIDRIP: "arbitranry cidrip"},
 			},

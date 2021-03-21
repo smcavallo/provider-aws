@@ -85,13 +85,12 @@ func cluster(m ...redshiftModifier) *v1alpha1.Cluster {
 				NumberOfNodes:       aws.Int32(1),
 				VPCSecurityGroupIDs: []string{"id-sg"},
 				// Late Initialize
-				AllowVersionUpgrade: aws.Bool(false),
+				AllowVersionUpgrade:              aws.Bool(false),
 				AutomatedSnapshotRetentionPeriod: aws.Int32(0),
-				Encrypted: aws.Bool(false),
-				EnhancedVPCRouting: aws.Bool(false),
-				ManualSnapshotRetentionPeriod: aws.Int32(0),
-				PubliclyAccessible: aws.Bool(false),
-
+				Encrypted:                        aws.Bool(false),
+				EnhancedVPCRouting:               aws.Bool(false),
+				ManualSnapshotRetentionPeriod:    aws.Int32(0),
+				PubliclyAccessible:               aws.Bool(false),
 			},
 		},
 	}

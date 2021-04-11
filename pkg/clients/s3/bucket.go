@@ -29,6 +29,7 @@ import (
 	"github.com/crossplane/crossplane-runtime/pkg/meta"
 
 	"github.com/crossplane/provider-aws/apis/s3/v1beta1"
+	awsclient "github.com/crossplane/provider-aws/pkg/clients"
 )
 
 var (
@@ -244,6 +245,15 @@ func CopyTags(tags []v1beta1.Tag) []s3types.Tag {
 	out := make([]s3types.Tag, 0)
 	for _, one := range tags {
 		out = append(out, s3types.Tag{Key: aws.String(one.Key), Value: aws.String(one.Value)})
+	}
+	return out
+}
+
+// CopyAWSTags converts a list of external s3.Tags to local Tags
+func CopyAWSTags(tags []s3types.Tag) []v1beta1.Tag {
+	out := make([]v1beta1.Tag, len(tags))
+	for i, one := range tags {
+		out[i] = v1beta1.Tag{Key: awsclient.StringValue(one.Key), Value: awsclient.StringValue(one.Value)}
 	}
 	return out
 }

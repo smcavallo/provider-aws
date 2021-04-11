@@ -18,6 +18,9 @@ func Client(m ...ClientModifier) *fake.MockBucketClient {
 		MockHeadBucket: func(ctx context.Context, input *awss3.HeadBucketInput, opts []func(*awss3.Options)) (*awss3.HeadBucketOutput, error) {
 			return &awss3.HeadBucketOutput{}, nil
 		},
+		MockCreateBucket: func(ctx context.Context, input *awss3.CreateBucketInput, opts []func(*awss3.Options)) (*awss3.CreateBucketOutput, error) {
+			return &awss3.CreateBucketOutput{}, nil
+		},
 		MockGetBucketAccelerateConfiguration: func(ctx context.Context, input *awss3.GetBucketAccelerateConfigurationInput, opts []func(*awss3.Options)) (*awss3.GetBucketAccelerateConfigurationOutput, error) {
 			return &awss3.GetBucketAccelerateConfigurationOutput{}, nil
 		},
@@ -68,6 +71,13 @@ type ClientModifier func(client *fake.MockBucketClient)
 func WithGetRequestPayment(input func(ctx context.Context, input *awss3.GetBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.GetBucketRequestPaymentOutput, error)) ClientModifier {
 	return func(client *fake.MockBucketClient) {
 		client.MockGetBucketRequestPayment = input
+	}
+}
+
+// WithCreateBucket sets the MockCreateBucketRequest of the mock S3 Client
+func WithCreateBucket(input func(ctx context.Context, input *awss3.CreateBucketInput, opts []func(*awss3.Options)) (*awss3.CreateBucketOutput, error)) ClientModifier {
+	return func(client *fake.MockBucketClient) {
+		client.MockCreateBucket = input
 	}
 }
 

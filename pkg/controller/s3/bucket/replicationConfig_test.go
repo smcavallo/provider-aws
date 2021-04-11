@@ -18,6 +18,7 @@ package bucket
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -340,6 +341,122 @@ func TestReplicationDelete(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			err := tc.args.cl.Delete(context.Background(), tc.args.b)
 			if diff := cmp.Diff(tc.want.err, err, test.EquateErrors()); diff != "" {
+				t.Errorf("r: -want, +got:\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestReplicationLateInit(t *testing.T) {
+	type args struct {
+		cl SubresourceClient
+		b  *v1beta1.Bucket
+	}
+
+	type want struct {
+		err error
+		cr  *v1beta1.Bucket
+	}
+
+	cases := map[string]struct {
+		args
+		want
+	}{
+		"Error": {
+			args: args{
+				b: s3Testing.Bucket(),
+				cl: NewReplicationConfigurationClient(fake.MockBucketClient{
+					MockGetBucketReplication: func(ctx context.Context, input *s3.GetBucketReplicationInput, opts []func(*s3.Options)) (*s3.GetBucketReplicationOutput, error) {
+						return &s3.GetBucketReplicationOutput{}, errBoom
+					},
+				}),
+			},
+			want: want{
+				err: awsclient.Wrap(errBoom, replicationGetFailed),
+				cr:  s3Testing.Bucket(),
+			},
+		},
+		"ErrorReplicationConfigurationNotFound": {
+			args: args{
+				b: s3Testing.Bucket(),
+				cl: NewReplicationConfigurationClient(fake.MockBucketClient{
+					MockGetBucketReplication: func(ctx context.Context, input *s3.GetBucketReplicationInput, opts []func(*s3.Options)) (*s3.GetBucketReplicationOutput, error) {
+						return &s3.GetBucketReplicationOutput{}, awserr.New(clientss3.ReplicationErrCode, "error", nil)
+					},
+				}),
+			},
+			want: want{
+				err: nil,
+				cr:  s3Testing.Bucket(),
+			},
+		},
+		"NoLateInitNil": {
+			args: args{
+				b: s3Testing.Bucket(),
+				cl: NewReplicationConfigurationClient(fake.MockBucketClient{
+					MockGetBucketReplication: func(ctx context.Context, input *s3.GetBucketReplicationInput, opts []func(*s3.Options)) (*s3.GetBucketReplicationOutput, error) {
+						return &s3.GetBucketReplicationOutput{}, nil
+					},
+				}),
+			},
+			want: want{
+				err: nil,
+				cr:  s3Testing.Bucket(),
+			},
+		},
+		"NoLateInitEmpty": {
+			args: args{
+				b: s3Testing.Bucket(),
+				cl: NewReplicationConfigurationClient(fake.MockBucketClient{
+					MockGetBucketReplication: func(ctx context.Context, input *s3.GetBucketReplicationInput, opts []func(*s3.Options)) (*s3.GetBucketReplicationOutput, error) {
+						return &s3.GetBucketReplicationOutput{ReplicationConfiguration: nil}, nil
+					},
+				}),
+			},
+			want: want{
+				err: nil,
+				cr:  s3Testing.Bucket(),
+			},
+		},
+		"SuccessfulLateInit": {
+			args: args{
+				b: s3Testing.Bucket(s3Testing.WithReplConfig(nil)),
+				cl: NewReplicationConfigurationClient(fake.MockBucketClient{
+					MockGetBucketReplication: func(ctx context.Context, input *s3.GetBucketReplicationInput, opts []func(*s3.Options)) (*s3.GetBucketReplicationOutput, error) {
+						return &s3.GetBucketReplicationOutput{ReplicationConfiguration: generateAWSReplication()}, nil
+					},
+				}),
+			},
+			want: want{
+				err: nil,
+				cr:  s3Testing.Bucket(s3Testing.WithReplConfig(generateReplicationConfig())),
+			},
+		},
+		"NoOpLateInit": {
+			args: args{
+				b: s3Testing.Bucket(s3Testing.WithReplConfig(generateReplicationConfig())),
+				cl: NewReplicationConfigurationClient(fake.MockBucketClient{
+					MockGetBucketReplication: func(ctx context.Context, input *s3.GetBucketReplicationInput, opts []func(*s3.Options)) (*s3.GetBucketReplicationOutput, error) {
+						return &s3.GetBucketReplicationOutput{
+							ReplicationConfiguration: &s3types.ReplicationConfiguration{},
+						}, nil
+					},
+				}),
+			},
+			want: want{
+				err: nil,
+				cr:  s3Testing.Bucket(s3Testing.WithReplConfig(generateReplicationConfig())),
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			err := tc.args.cl.LateInitialize(context.Background(), tc.args.b)
+			if diff := cmp.Diff(tc.want.err, err, test.EquateErrors()); diff != "" {
+				t.Errorf("r: -want, +got:\n%s", diff)
+			}
+			if diff := cmp.Diff(tc.want.cr, tc.args.b, test.EquateConditions()); diff != "" {
 				t.Errorf("r: -want, +got:\n%s", diff)
 			}
 		})

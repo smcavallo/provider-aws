@@ -18,6 +18,7 @@ package bucket
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -286,6 +287,112 @@ func TestCORSDelete(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			err := tc.args.cl.Delete(context.Background(), tc.args.b)
 			if diff := cmp.Diff(tc.want.err, err, test.EquateErrors()); diff != "" {
+				t.Errorf("r: -want, +got:\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestCORSLateInit(t *testing.T) {
+	type args struct {
+		cl SubresourceClient
+		b  *v1beta1.Bucket
+	}
+
+	type want struct {
+		err error
+		cr  *v1beta1.Bucket
+	}
+
+	cases := map[string]struct {
+		args
+		want
+	}{
+		"Error": {
+			args: args{
+				b: s3Testing.Bucket(),
+
+				cl: NewCORSConfigurationClient(fake.MockBucketClient{
+					MockGetBucketCors: func(ctx context.Context, input *s3.GetBucketCorsInput, opts []func(*s3.Options)) (*s3.GetBucketCorsOutput, error) {
+						return &s3.GetBucketCorsOutput{}, errBoom
+					},
+				}),
+			},
+			want: want{
+				err: awsclient.Wrap(errBoom, corsGetFailed),
+				cr:  s3Testing.Bucket(),
+			},
+		},
+		"ErrorCORSErrCode": {
+			args: args{
+				b: s3Testing.Bucket(),
+
+				cl: NewCORSConfigurationClient(fake.MockBucketClient{
+					MockGetBucketCors: func(ctx context.Context, input *s3.GetBucketCorsInput, opts []func(*s3.Options)) (*s3.GetBucketCorsOutput, error) {
+						return &s3.GetBucketCorsOutput{}, awserr.New(clientss3.CORSErrCode, "error", nil)
+					},
+				}),
+			},
+			want: want{
+				err: nil,
+				cr:  s3Testing.Bucket(),
+			},
+		},
+		"NoLateInitEmpty": {
+			args: args{
+				b: s3Testing.Bucket(),
+				cl: NewCORSConfigurationClient(fake.MockBucketClient{
+					MockGetBucketCors: func(ctx context.Context, input *s3.GetBucketCorsInput, opts []func(*s3.Options)) (*s3.GetBucketCorsOutput, error) {
+						return &s3.GetBucketCorsOutput{CORSRules: make([]s3types.CORSRule, 0)}, nil
+					},
+				}),
+			},
+			want: want{
+				err: nil,
+				cr:  s3Testing.Bucket(),
+			},
+		},
+		"SuccessfulLateInit": {
+			args: args{
+				b: s3Testing.Bucket(s3Testing.WithCORSConfig(nil)),
+				cl: NewCORSConfigurationClient(fake.MockBucketClient{
+					MockGetBucketCors: func(ctx context.Context, input *s3.GetBucketCorsInput, opts []func(*s3.Options)) (*s3.GetBucketCorsOutput, error) {
+						return &s3.GetBucketCorsOutput{CORSRules: generateAWSCORS().CORSRules}, nil
+					},
+				}),
+			},
+
+			want: want{
+				err: nil,
+				cr:  s3Testing.Bucket(s3Testing.WithCORSConfig(generateCORSConfig())),
+			},
+		},
+		"NoOpLateInit": {
+			args: args{
+				b: s3Testing.Bucket(s3Testing.WithCORSConfig(generateCORSConfig())),
+				cl: NewCORSConfigurationClient(fake.MockBucketClient{
+					MockGetBucketCors: func(ctx context.Context, input *s3.GetBucketCorsInput, opts []func(*s3.Options)) (*s3.GetBucketCorsOutput, error) {
+						return &s3.GetBucketCorsOutput{CORSRules: []s3types.CORSRule{
+							{},
+						}}, nil
+					},
+				}),
+			},
+
+			want: want{
+				err: nil,
+				cr:  s3Testing.Bucket(s3Testing.WithCORSConfig(generateCORSConfig())),
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			err := tc.args.cl.LateInitialize(context.Background(), tc.args.b)
+			if diff := cmp.Diff(tc.want.err, err, test.EquateErrors()); diff != "" {
+				t.Errorf("r: -want, +got:\n%s", diff)
+			}
+			if diff := cmp.Diff(tc.want.cr, tc.args.b, test.EquateConditions()); diff != "" {
 				t.Errorf("r: -want, +got:\n%s", diff)
 			}
 		})

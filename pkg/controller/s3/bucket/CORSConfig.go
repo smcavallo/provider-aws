@@ -1,12 +1,9 @@
 /*
 Copyright 2020 The Crossplane Authors.
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,9 +16,9 @@ package bucket
 import (
 	"context"
 
-	aws "github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
-	awss3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/crossplane/crossplane-runtime/pkg/meta"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 	"github.com/google/go-cmp/cmp"
@@ -42,40 +39,9 @@ type CORSConfigurationClient struct {
 	client s3.BucketClient
 }
 
-// LateInitialize does nothing because CORSConfiguration might have been deleted
-// by the user.
-func (*CORSConfigurationClient) LateInitialize(_ context.Context, _ *v1beta1.Bucket) error {
-	return nil
-}
-
 // NewCORSConfigurationClient creates the client for CORS Configuration
 func NewCORSConfigurationClient(client s3.BucketClient) *CORSConfigurationClient {
 	return &CORSConfigurationClient{client: client}
-}
-
-// CompareCORS compares the external and internal representations for the list of CORSRules
-func CompareCORS(local []v1beta1.CORSRule, external []awss3types.CORSRule) ResourceStatus { // nolint:gocyclo
-	switch {
-	case len(local) == 0 && len(external) != 0:
-		return NeedsDeletion
-	case len(local) == 0 && len(external) == 0:
-		return Updated
-	case len(local) != len(external):
-		return NeedsUpdate
-	}
-
-	for i := range local {
-		outputRule := external[i]
-		if !(cmp.Equal(local[i].AllowedHeaders, outputRule.AllowedHeaders) &&
-			cmp.Equal(local[i].AllowedMethods, outputRule.AllowedMethods) &&
-			cmp.Equal(local[i].AllowedOrigins, outputRule.AllowedOrigins) &&
-			cmp.Equal(local[i].ExposeHeaders, outputRule.ExposeHeaders) &&
-			cmp.Equal(aws.ToInt32(local[i].MaxAgeSeconds), outputRule.MaxAgeSeconds)) {
-			return NeedsUpdate
-		}
-	}
-
-	return Updated
 }
 
 // Observe checks if the resource exists and if it matches the local configuration
@@ -88,29 +54,11 @@ func (in *CORSConfigurationClient) Observe(ctx context.Context, bucket *v1beta1.
 	if bucket.Spec.ForProvider.CORSConfiguration != nil {
 		local = bucket.Spec.ForProvider.CORSConfiguration.CORSRules
 	}
-	var external []awss3types.CORSRule
+	var external []types.CORSRule
 	if result != nil {
 		external = result.CORSRules
 	}
 	return CompareCORS(local, external), nil
-}
-
-// GeneratePutBucketCorsInput creates the input for the PutBucketCors request for the S3 Client
-func GeneratePutBucketCorsInput(name string, config *v1beta1.CORSConfiguration) *awss3.PutBucketCorsInput {
-	bci := &awss3.PutBucketCorsInput{
-		Bucket:            awsclient.String(name),
-		CORSConfiguration: &awss3types.CORSConfiguration{CORSRules: make([]awss3types.CORSRule, 0)},
-	}
-	for _, cors := range config.CORSRules {
-		bci.CORSConfiguration.CORSRules = append(bci.CORSConfiguration.CORSRules, awss3types.CORSRule{
-			AllowedHeaders: cors.AllowedHeaders,
-			AllowedMethods: cors.AllowedMethods,
-			AllowedOrigins: cors.AllowedOrigins,
-			ExposeHeaders:  cors.ExposeHeaders,
-			MaxAgeSeconds:  aws.ToInt32(cors.MaxAgeSeconds),
-		})
-	}
-	return bci
 }
 
 // CreateOrUpdate sends a request to have resource created on AWS
@@ -131,4 +79,93 @@ func (in *CORSConfigurationClient) Delete(ctx context.Context, bucket *v1beta1.B
 		},
 	)
 	return awsclient.Wrap(err, corsDeleteFailed)
+}
+
+// LateInitialize does nothing because CORSConfiguration might have been deleted
+// by the user.
+func (in *CORSConfigurationClient) LateInitialize(ctx context.Context, bucket *v1beta1.Bucket) error {
+	external, err := in.client.GetBucketCors(ctx, &awss3.GetBucketCorsInput{Bucket: awsclient.String(meta.GetExternalName(bucket))})
+	if err != nil {
+		return awsclient.Wrap(resource.Ignore(s3.CORSConfigurationNotFound, err), corsGetFailed)
+	}
+
+	// We need the second check here because by default the CORS is not set
+	if external == nil || len(external.CORSRules) == 0 {
+		return nil
+	}
+
+	fp := &bucket.Spec.ForProvider
+	if fp.CORSConfiguration == nil {
+		fp.CORSConfiguration = &v1beta1.CORSConfiguration{}
+	}
+
+	if fp.CORSConfiguration.CORSRules == nil {
+		// only run late init if the user has not specified CORSRules
+		bucket.Spec.ForProvider.CORSConfiguration.CORSRules = GenerateCORSRule(external.CORSRules)
+	}
+
+	return nil
+}
+
+// SubresourceExists checks if the subresource this controller manages currently exists
+func (in *CORSConfigurationClient) SubresourceExists(bucket *v1beta1.Bucket) bool {
+	return bucket.Spec.ForProvider.CORSConfiguration != nil
+}
+
+// GeneratePutBucketCorsInput creates the input for the PutBucketCors request for the S3 Client
+func GeneratePutBucketCorsInput(name string, config *v1beta1.CORSConfiguration) *awss3.PutBucketCorsInput {
+	bci := &awss3.PutBucketCorsInput{
+		Bucket:            awsclient.String(name),
+		CORSConfiguration: &types.CORSConfiguration{CORSRules: make([]types.CORSRule, 0)},
+	}
+	for _, cors := range config.CORSRules {
+		bci.CORSConfiguration.CORSRules = append(bci.CORSConfiguration.CORSRules, types.CORSRule{
+			AllowedHeaders: cors.AllowedHeaders,
+			AllowedMethods: cors.AllowedMethods,
+			AllowedOrigins: cors.AllowedOrigins,
+			ExposeHeaders:  cors.ExposeHeaders,
+			MaxAgeSeconds:  aws.ToInt32(cors.MaxAgeSeconds),
+		})
+	}
+	return bci
+}
+
+// CompareCORS compares the external and internal representations for the list of CORSRules
+func CompareCORS(local []v1beta1.CORSRule, external []types.CORSRule) ResourceStatus { // nolint:gocyclo
+	switch {
+	case len(local) == 0 && len(external) != 0:
+		return NeedsDeletion
+	case len(local) == 0 && len(external) == 0:
+		return Updated
+	case len(local) != len(external):
+		return NeedsUpdate
+	}
+
+	for i := range local {
+		outputRule := external[i]
+		if !(cmp.Equal(local[i].AllowedHeaders, outputRule.AllowedHeaders) &&
+			cmp.Equal(local[i].AllowedMethods, outputRule.AllowedMethods) &&
+			cmp.Equal(local[i].AllowedOrigins, outputRule.AllowedOrigins) &&
+			cmp.Equal(local[i].ExposeHeaders, outputRule.ExposeHeaders) &&
+			cmp.Equal(local[i].MaxAgeSeconds, outputRule.MaxAgeSeconds)) {
+			return NeedsUpdate
+		}
+	}
+
+	return Updated
+}
+
+// GenerateCORSRule creates the cors rule from a GetBucketCORS request from the S3 Client
+func GenerateCORSRule(config []types.CORSRule) []v1beta1.CORSRule {
+	output := make([]v1beta1.CORSRule, len(config))
+	for i, cors := range config {
+		output[i] = v1beta1.CORSRule{
+			AllowedHeaders: cors.AllowedHeaders,
+			AllowedMethods: cors.AllowedMethods,
+			AllowedOrigins: cors.AllowedOrigins,
+			ExposeHeaders:  cors.ExposeHeaders,
+			MaxAgeSeconds:  aws.Int32(cors.MaxAgeSeconds),
+		}
+	}
+	return output
 }

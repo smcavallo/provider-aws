@@ -203,3 +203,95 @@ func TestVersioningCreateOrUpdate(t *testing.T) {
 		})
 	}
 }
+
+func TestVersioningLateInit(t *testing.T) {
+	type args struct {
+		cl SubresourceClient
+		b  *v1beta1.Bucket
+	}
+
+	type want struct {
+		err error
+		cr  *v1beta1.Bucket
+	}
+
+	cases := map[string]struct {
+		args
+		want
+	}{
+		"Error": {
+			args: args{
+				b: s3Testing.Bucket(),
+				cl: NewVersioningConfigurationClient(fake.MockBucketClient{
+					MockGetBucketVersioning: func(ctx context.Context, input *s3.GetBucketVersioningInput, opts []func(*s3.Options)) (*s3.GetBucketVersioningOutput, error) {
+						return &s3.GetBucketVersioningOutput{}, errBoom
+					},
+				}),
+			},
+			want: want{
+				err: awsclient.Wrap(errBoom, versioningGetFailed),
+				cr:  s3Testing.Bucket(),
+			},
+		},
+		"NoLateInitNil": {
+			args: args{
+				b: s3Testing.Bucket(),
+				cl: NewVersioningConfigurationClient(fake.MockBucketClient{
+					MockGetBucketVersioning: func(ctx context.Context, input *s3.GetBucketVersioningInput, opts []func(*s3.Options)) (*s3.GetBucketVersioningOutput, error) {
+						return &s3.GetBucketVersioningOutput{}, nil
+					},
+				}),
+			},
+			want: want{
+				err: nil,
+				cr:  s3Testing.Bucket(),
+			},
+		},
+		"SuccessfulLateInit": {
+			args: args{
+				b: s3Testing.Bucket(s3Testing.WithVersioningConfig(nil)),
+				cl: NewVersioningConfigurationClient(fake.MockBucketClient{
+					MockGetBucketVersioning: func(ctx context.Context, input *s3.GetBucketVersioningInput, opts []func(*s3.Options)) (*s3.GetBucketVersioningOutput, error) {
+						return &s3.GetBucketVersioningOutput{
+							MFADelete: s3types.MFADeleteStatusEnabled,
+							Status:    s3types.BucketVersioningStatusEnabled,
+						}, nil
+					},
+				}),
+			},
+			want: want{
+				err: nil,
+				cr:  s3Testing.Bucket(s3Testing.WithVersioningConfig(generateVersioningConfig())),
+			},
+		},
+		"NoOpLateInit": {
+			args: args{
+				b: s3Testing.Bucket(s3Testing.WithVersioningConfig(generateVersioningConfig())),
+				cl: NewVersioningConfigurationClient(fake.MockBucketClient{
+					MockGetBucketVersioning: func(ctx context.Context, input *s3.GetBucketVersioningInput, opts []func(*s3.Options)) (*s3.GetBucketVersioningOutput, error) {
+						return &s3.GetBucketVersioningOutput{
+							MFADelete: s3types.MFADeleteStatusDisabled,
+							Status:    s3types.BucketVersioningStatusSuspended,
+						}, nil
+					},
+				}),
+			},
+			want: want{
+				err: nil,
+				cr:  s3Testing.Bucket(s3Testing.WithVersioningConfig(generateVersioningConfig())),
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			err := tc.args.cl.LateInitialize(context.Background(), tc.args.b)
+			if diff := cmp.Diff(tc.want.err, err, test.EquateErrors()); diff != "" {
+				t.Errorf("r: -want, +got:\n%s", diff)
+			}
+			if diff := cmp.Diff(tc.want.cr, tc.args.b, test.EquateConditions()); diff != "" {
+				t.Errorf("r: -want, +got:\n%s", diff)
+			}
+		})
+	}
+}

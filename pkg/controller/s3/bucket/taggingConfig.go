@@ -20,7 +20,7 @@ import (
 	"context"
 
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
-	awss3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/crossplane/crossplane-runtime/pkg/meta"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 	"github.com/google/go-cmp/cmp"
@@ -39,12 +39,6 @@ const (
 // TaggingConfigurationClient is the client for API methods and reconciling the CORSConfiguration
 type TaggingConfigurationClient struct {
 	client s3.BucketClient
-}
-
-// LateInitialize does nothing because the resource might have been deleted by
-// the user.
-func (*TaggingConfigurationClient) LateInitialize(_ context.Context, _ *v1beta1.Bucket) error {
-	return nil
 }
 
 // NewTaggingConfigurationClient creates the client for CORS Configuration
@@ -75,23 +69,6 @@ func (in *TaggingConfigurationClient) Observe(ctx context.Context, bucket *v1bet
 	}
 }
 
-// GenerateTagging creates the Tagging for the AWS SDK
-func GenerateTagging(config *v1beta1.Tagging) *awss3types.Tagging {
-	if config == nil || config.TagSet == nil {
-		return &awss3types.Tagging{TagSet: make([]awss3types.Tag, 0)}
-	}
-	conf := &awss3types.Tagging{TagSet: s3.CopyTags(config.TagSet)}
-	return conf
-}
-
-// GeneratePutBucketTagging creates the PutBucketTaggingInput for the aws SDK
-func GeneratePutBucketTagging(name string, config *v1beta1.Tagging) *awss3.PutBucketTaggingInput {
-	return &awss3.PutBucketTaggingInput{
-		Bucket:  awsclient.String(name),
-		Tagging: GenerateTagging(config),
-	}
-}
-
 // CreateOrUpdate sends a request to have resource created on AWS
 func (in *TaggingConfigurationClient) CreateOrUpdate(ctx context.Context, bucket *v1beta1.Bucket) error {
 	if bucket.Spec.ForProvider.BucketTagging == nil {
@@ -110,4 +87,58 @@ func (in *TaggingConfigurationClient) Delete(ctx context.Context, bucket *v1beta
 		},
 	)
 	return awsclient.Wrap(err, taggingDeleteFailed)
+}
+
+// LateInitialize does nothing because the resource might have been deleted by
+// the user.
+func (in *TaggingConfigurationClient) LateInitialize(ctx context.Context, bucket *v1beta1.Bucket) error {
+	external, err := in.client.GetBucketTagging(ctx, &awss3.GetBucketTaggingInput{Bucket: awsclient.String(meta.GetExternalName(bucket))})
+	if err != nil {
+		return awsclient.Wrap(resource.Ignore(s3.TaggingNotFound, err), taggingGetFailed)
+	}
+
+	// We need the second check here because by default the tags are not set
+	if external == nil || len(external.TagSet) == 0 {
+		return nil
+	}
+
+	fp := &bucket.Spec.ForProvider
+	if fp.BucketTagging == nil {
+		fp.BucketTagging = &v1beta1.Tagging{}
+	}
+
+	if fp.BucketTagging.TagSet == nil {
+		fp.BucketTagging = GenerateLocalTagging(external.TagSet)
+	}
+
+	return nil
+}
+
+// SubresourceExists checks if the subresource this controller manages currently exists
+func (in *TaggingConfigurationClient) SubresourceExists(bucket *v1beta1.Bucket) bool {
+	return bucket.Spec.ForProvider.BucketTagging != nil
+}
+
+// GenerateTagging creates the awss3.Tagging for the AWS SDK
+func GenerateTagging(config *v1beta1.Tagging) *types.Tagging {
+	if config == nil || config.TagSet == nil {
+		return &types.Tagging{TagSet: make([]types.Tag, 0)}
+	}
+	return &types.Tagging{TagSet: s3.CopyTags(config.TagSet)}
+}
+
+// GenerateLocalTagging creates the v1beta1.Tagging from the AWS SDK tagging
+func GenerateLocalTagging(config []types.Tag) *v1beta1.Tagging {
+	if config == nil {
+		return nil
+	}
+	return &v1beta1.Tagging{TagSet: s3.CopyAWSTags(config)}
+}
+
+// GeneratePutBucketTagging creates the PutBucketTaggingInput for the aws SDK
+func GeneratePutBucketTagging(name string, config *v1beta1.Tagging) *awss3.PutBucketTaggingInput {
+	return &awss3.PutBucketTaggingInput{
+		Bucket:  awsclient.String(name),
+		Tagging: GenerateTagging(config),
+	}
 }

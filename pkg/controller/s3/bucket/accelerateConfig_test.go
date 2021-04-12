@@ -22,13 +22,14 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go"
 	"github.com/crossplane/crossplane-runtime/pkg/test"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 
 	"github.com/crossplane/provider-aws/apis/s3/v1beta1"
 	awsclient "github.com/crossplane/provider-aws/pkg/clients"
-	s3client "github.com/crossplane/provider-aws/pkg/clients/s3"
+	clientss3 "github.com/crossplane/provider-aws/pkg/clients/s3"
 	"github.com/crossplane/provider-aws/pkg/clients/s3/fake"
 	s3Testing "github.com/crossplane/provider-aws/pkg/controller/s3/testing"
 )
@@ -222,26 +223,26 @@ func TestAccelLateInit(t *testing.T) {
 				cr:  s3Testing.Bucket(),
 			},
 		},
-		"ErrorMethodNotAllowed": {
+		"ErrorMethodNotAllowedShortStopAndReturnNil": {
 			args: args{
 				b: s3Testing.Bucket(),
 				cl: NewAccelerateConfigurationClient(fake.MockBucketClient{
-				MockGetBucketAccelerateConfiguration: func(ctx context.Context, input *s3.GetBucketAccelerateConfigurationInput, opts []func(*s3.Options)) (*s3.GetBucketAccelerateConfigurationOutput, error) {
-					return nil, errors.New(s3client.MethodNotAllowed)
-				},
-			}),
-		},
+					MockGetBucketAccelerateConfiguration: func(ctx context.Context, input *s3.GetBucketAccelerateConfigurationInput, opts []func(*s3.Options)) (*s3.GetBucketAccelerateConfigurationOutput, error) {
+						return nil, &smithy.GenericAPIError{Code: clientss3.MethodNotAllowed}
+					},
+				}),
+			},
 			want: want{
 				err: nil,
 				cr:  s3Testing.Bucket(),
 			},
 		},
-		"ErrorArgumentNotSupported": {
+		"ErrorArgumentNotSupportedShortStopAndReturnNil": {
 			args: args{
 				b: s3Testing.Bucket(),
 				cl: NewAccelerateConfigurationClient(fake.MockBucketClient{
 					MockGetBucketAccelerateConfiguration: func(ctx context.Context, input *s3.GetBucketAccelerateConfigurationInput, opts []func(*s3.Options)) (*s3.GetBucketAccelerateConfigurationOutput, error) {
-						return nil, errors.New(s3client.UnsupportedArgument)
+						return nil, &smithy.GenericAPIError{Code: clientss3.UnsupportedArgument}
 					},
 				}),
 			},

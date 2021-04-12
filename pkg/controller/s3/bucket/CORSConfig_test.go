@@ -18,7 +18,6 @@ package bucket
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -329,7 +328,7 @@ func TestCORSLateInit(t *testing.T) {
 
 				cl: NewCORSConfigurationClient(fake.MockBucketClient{
 					MockGetBucketCors: func(ctx context.Context, input *s3.GetBucketCorsInput, opts []func(*s3.Options)) (*s3.GetBucketCorsOutput, error) {
-						return &s3.GetBucketCorsOutput{}, awserr.New(clientss3.CORSErrCode, "error", nil)
+						return &s3.GetBucketCorsOutput{}, &smithy.GenericAPIError{Code: clientss3.CORSErrCode}
 					},
 				}),
 			},

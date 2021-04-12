@@ -24,6 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	awss3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/util/errors"
@@ -37,7 +38,7 @@ import (
 
 	"github.com/crossplane/provider-aws/apis/s3/v1beta1"
 	awsclient "github.com/crossplane/provider-aws/pkg/clients"
-	"github.com/crossplane/provider-aws/pkg/clients/s3"
+	clients3 "github.com/crossplane/provider-aws/pkg/clients/s3"
 	"github.com/crossplane/provider-aws/pkg/clients/s3/fake"
 	"github.com/crossplane/provider-aws/pkg/controller/s3/bucket"
 	s3Testing "github.com/crossplane/provider-aws/pkg/controller/s3/testing"
@@ -50,7 +51,7 @@ var (
 )
 
 type args struct {
-	s3   s3.BucketClient
+	s3   clients3.BucketClient
 	kube client.Client
 	cr   resource.Managed
 }
@@ -300,13 +301,13 @@ func TestCreate(t *testing.T) {
 					MockUpdate: test.NewMockUpdateFn(nil),
 				},
 				s3: s3Testing.Client(s3Testing.WithCreateBucket(func(ctx context.Context, input *awss3.CreateBucketInput, opts []func(*awss3.Options)) (*awss3.CreateBucketOutput, error) {
-					return &awss3.CreateBucketOutput{}, nil
+					return &awss3.CreateBucketOutput{}, &smithy.GenericAPIError{Code: "boom"}
 				})),
 				cr: s3Testing.Bucket(),
 			},
 			want: want{
 				cr:  s3Testing.Bucket(s3Testing.WithConditions(xpv1.Creating())),
-				err: awsclient.Wrap(errBoom, errCreate),
+				err: awsclient.Wrap(errors.New("api error boom: "), errCreate),
 			},
 		},
 		"ValidInputLateInitialize": {

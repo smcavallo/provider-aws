@@ -32,6 +32,7 @@ import (
 	awsclient "github.com/crossplane/provider-aws/pkg/clients"
 )
 
+// See - https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#RESTErrorResponses
 var (
 	// CORSErrCode is the error code sent by AWS when the CORS configuration does not exist
 	CORSErrCode = "NoSuchCORSConfiguration"

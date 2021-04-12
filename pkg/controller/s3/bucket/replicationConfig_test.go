@@ -18,7 +18,6 @@ package bucket
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -381,7 +380,7 @@ func TestReplicationLateInit(t *testing.T) {
 				b: s3Testing.Bucket(),
 				cl: NewReplicationConfigurationClient(fake.MockBucketClient{
 					MockGetBucketReplication: func(ctx context.Context, input *s3.GetBucketReplicationInput, opts []func(*s3.Options)) (*s3.GetBucketReplicationOutput, error) {
-						return &s3.GetBucketReplicationOutput{}, awserr.New(clientss3.ReplicationErrCode, "error", nil)
+						return &s3.GetBucketReplicationOutput{}, &smithy.GenericAPIError{Code: clientss3.ReplicationErrCode}
 					},
 				}),
 			},

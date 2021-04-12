@@ -18,7 +18,6 @@ package bucket
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -390,7 +389,7 @@ func TestWebsiteLateInit(t *testing.T) {
 				b: s3Testing.Bucket(),
 				cl: NewWebsiteConfigurationClient(fake.MockBucketClient{
 					MockGetBucketWebsite: func(tx context.Context, input *s3.GetBucketWebsiteInput, opts []func(*s3.Options)) (*s3.GetBucketWebsiteOutput, error) {
-						return nil, awserr.New(clients3.WebsiteErrCode, "error", nil)
+						return nil, &smithy.GenericAPIError{Code: clients3.WebsiteErrCode}
 					},
 				}),
 			},
@@ -404,7 +403,7 @@ func TestWebsiteLateInit(t *testing.T) {
 				b: s3Testing.Bucket(),
 				cl: NewWebsiteConfigurationClient(fake.MockBucketClient{
 					MockGetBucketWebsite: func(tx context.Context, input *s3.GetBucketWebsiteInput, opts []func(*s3.Options)) (*s3.GetBucketWebsiteOutput, error) {
-						return nil, errBoom
+						return nil, &smithy.GenericAPIError{Code: clients3.WebsiteErrCode}
 					},
 				}),
 			},
@@ -439,8 +438,8 @@ func TestWebsiteLateInit(t *testing.T) {
 				cl: NewWebsiteConfigurationClient(fake.MockBucketClient{
 					MockGetBucketWebsite: func(tx context.Context, input *s3.GetBucketWebsiteInput, opts []func(*s3.Options)) (*s3.GetBucketWebsiteOutput, error) {
 						return &s3.GetBucketWebsiteOutput{
-								RedirectAllRequestsTo: generateAWSWebsite().RedirectAllRequestsTo,
-								RoutingRules:          generateAWSWebsite().RoutingRules,
+							RedirectAllRequestsTo: generateAWSWebsite().RedirectAllRequestsTo,
+							RoutingRules:          generateAWSWebsite().RoutingRules,
 						}, nil
 					},
 				}),

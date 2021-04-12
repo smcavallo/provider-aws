@@ -18,7 +18,6 @@ package bucket
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"testing"
 	"time"
 
@@ -419,7 +418,7 @@ func TestLifecycleLateInit(t *testing.T) {
 				b: s3Testing.Bucket(),
 				cl: NewLifecycleConfigurationClient(fake.MockBucketClient{
 					MockGetBucketLifecycleConfiguration: func(ctx context.Context, input *s3.GetBucketLifecycleConfigurationInput, opts []func(*s3.Options)) (*s3.GetBucketLifecycleConfigurationOutput, error) {
-						return &s3.GetBucketLifecycleConfigurationOutput{}, awserr.New(clients3.LifecycleErrCode, "error", nil)
+						return &s3.GetBucketLifecycleConfigurationOutput{}, &smithy.GenericAPIError{Code: clients3.LifecycleErrCode}
 					},
 				}),
 			},

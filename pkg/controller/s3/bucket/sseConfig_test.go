@@ -18,7 +18,6 @@ package bucket
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -334,7 +333,7 @@ func TestSSELateInit(t *testing.T) {
 				b: s3Testing.Bucket(),
 				cl: NewSSEConfigurationClient(fake.MockBucketClient{
 					MockGetBucketEncryption: func(ctx context.Context, input *s3.GetBucketEncryptionInput, opts []func(*s3.Options)) (*s3.GetBucketEncryptionOutput, error) {
-						return &s3.GetBucketEncryptionOutput{}, awserr.New(clients3.SSEErrCode, "error", nil)
+						return &s3.GetBucketEncryptionOutput{}, &smithy.GenericAPIError{Code: clients3.SSEErrCode}
 					},
 				}),
 			},

@@ -2,7 +2,6 @@ package acm
 
 import (
 	"context"
-	"errors"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -94,9 +93,7 @@ func LateInitializeCertificate(in *v1alpha1.CertificateParameters, certificate *
 
 	in.DomainName = awsclients.LateInitializeString(in.DomainName, certificate.DomainName)
 
-	if in.CertificateAuthorityARN != nil && *in.CertificateAuthorityARN == "" && certificate.CertificateAuthorityArn != nil {
-		in.CertificateAuthorityARN = certificate.CertificateAuthorityArn
-	}
+	in.CertificateAuthorityARN = awsclients.LateInitializeStringPtr(in.CertificateAuthorityARN, certificate.CertificateAuthorityArn)
 
 	if in.CertificateTransparencyLoggingPreference == nil && certificate.Options != nil {
 		in.CertificateTransparencyLoggingPreference = &certificate.Options.CertificateTransparencyLoggingPreference
@@ -117,8 +114,8 @@ func LateInitializeCertificate(in *v1alpha1.CertificateParameters, certificate *
 		in.DomainValidationOptions = make([]*v1alpha1.DomainValidationOption, len(certificate.DomainValidationOptions))
 		for i, val := range certificate.DomainValidationOptions {
 			in.DomainValidationOptions[i] = &v1alpha1.DomainValidationOption{
-				DomainName:       *val.DomainName,
-				ValidationDomain: *val.ValidationDomain,
+				DomainName:       awsclients.StringValue(val.DomainName),
+				ValidationDomain: awsclients.StringValue(val.ValidationDomain),
 			}
 		}
 	}
@@ -152,6 +149,6 @@ func IsCertificateUpToDate(p v1alpha1.CertificateParameters, cd types.Certificat
 
 // IsErrorNotFound returns true if the error code indicates that the item was not found
 func IsErrorNotFound(err error) bool {
-	var nsr *acmtypes.ResourceNotFoundException
-	return errors.As(err, &nsr)
+	_, ok := err.(*acmtypes.ResourceNotFoundException)
+	return ok
 }

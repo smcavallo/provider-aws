@@ -143,7 +143,7 @@ func UseProvider(ctx context.Context, c client.Client, mg resource.Managed, regi
 		region = p.Spec.Region
 	}
 
-	if *p.Spec.UseServiceAccount {
+	if BoolValue(p.Spec.UseServiceAccount) {
 		return UsePodServiceAccount(ctx, []byte{}, DefaultSection, region)
 	}
 

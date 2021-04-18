@@ -52,7 +52,7 @@ func IsDBSubnetGroupNotFoundErr(err error) bool {
 
 // IsDBSubnetGroupUpToDate checks whether there is a change in any of the modifiable fields.
 func IsDBSubnetGroupUpToDate(p v1beta1.DBSubnetGroupParameters, sg rdstypes.DBSubnetGroup, tags []rdstypes.Tag) bool { // nolint:gocyclo
-	if p.Description != aws.ToString(sg.DBSubnetGroupDescription) {
+	if p.Description != awsclients.StringValue(sg.DBSubnetGroupDescription) {
 		return false
 	}
 

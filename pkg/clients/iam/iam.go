@@ -235,7 +235,8 @@ func IsErrorNotFound(err error) bool {
 
 // NewErrorNotFound returns an aws error with error code indicating the item was not found.
 func NewErrorNotFound() error {
-	return awserr.New(iam.ErrCodeNoSuchEntityException, "", nil)
+	var nse *iamtypes.NoSuchEntityException
+	return errors.New(*nse.Message)
 }
 
 // PolicyDocument is the structure of IAM policy document

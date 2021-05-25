@@ -6,7 +6,7 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/crossplane/provider-aws/apis/ec2/v1alpha1"
+	"github.com/crossplane/provider-aws/apis/ec2/v1beta1"
 	aws "github.com/crossplane/provider-aws/pkg/clients"
 )
 
@@ -22,14 +22,15 @@ var (
 	networkInterfaceOwnerID = "owner"
 	testKey                 = "key"
 	testValue               = "value"
+
 	ec2tag                  = ec2types.Tag{Key: &testKey, Value: &testValue}
-	alpha1tag               = v1alpha1.Tag{Key: testKey, Value: testValue}
+	v1beta1Tag              = v1beta1.Tag{Key: testKey, Value: testValue}
 )
 
-func TestGenerateElasticIPObservation(t *testing.T) {
+func TestGenerateAddressObservation(t *testing.T) {
 	cases := map[string]struct {
 		in  ec2types.Address
-		out v1alpha1.ElasticIPObservation
+		out v1beta1.AddressObservation
 	}{
 		"AllFilled": {
 			in: ec2types.Address{
@@ -47,7 +48,7 @@ func TestGenerateElasticIPObservation(t *testing.T) {
 				PublicIpv4Pool:          aws.String(poolName),
 				Tags:                    []ec2types.Tag{ec2tag},
 			},
-			out: v1alpha1.ElasticIPObservation{
+			out: v1beta1.AddressObservation{
 				AllocationID:            allocationID,
 				AssociationID:           associationID,
 				CustomerOwnedIP:         testIPAddress,
@@ -65,9 +66,9 @@ func TestGenerateElasticIPObservation(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			r := GenerateElasticIPObservation(tc.in)
+			r := GenerateAddressObservation(tc.in)
 			if diff := cmp.Diff(tc.out, r); diff != "" {
-				t.Errorf("GenerateElasticIPObservation(...): -want, +got:\n%s", diff)
+				t.Errorf("GenerateAddressObservation(...): -want, +got:\n%s", diff)
 			}
 		})
 	}
@@ -76,7 +77,7 @@ func TestGenerateElasticIPObservation(t *testing.T) {
 func TestIsEIPUpToDate(t *testing.T) {
 	type args struct {
 		eip ec2types.Address
-		e   v1alpha1.ElasticIPParameters
+		e   v1beta1.AddressParameters
 	}
 
 	cases := map[string]struct {
@@ -88,8 +89,8 @@ func TestIsEIPUpToDate(t *testing.T) {
 				eip: ec2types.Address{
 					Tags: []ec2types.Tag{ec2tag},
 				},
-				e: v1alpha1.ElasticIPParameters{
-					Tags: []v1alpha1.Tag{alpha1tag},
+				e: v1beta1.AddressParameters{
+					Tags: []v1beta1.Tag{v1beta1Tag},
 				},
 			},
 			want: true,
@@ -99,8 +100,8 @@ func TestIsEIPUpToDate(t *testing.T) {
 				eip: ec2types.Address{
 					Tags: []ec2types.Tag{},
 				},
-				e: v1alpha1.ElasticIPParameters{
-					Tags: []v1alpha1.Tag{alpha1tag},
+				e: v1beta1.AddressParameters{
+					Tags: []v1beta1.Tag{v1beta1Tag},
 				},
 			},
 			want: false,
@@ -109,7 +110,7 @@ func TestIsEIPUpToDate(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			got := IsElasticIPUpToDate(tc.args.e, tc.args.eip)
+			got := IsAddressUpToDate(tc.args.e, tc.args.eip)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Errorf("r: -want, +got:\n%s", diff)
 			}

@@ -58,6 +58,7 @@ const (
 	errStatusUpdate     = "cannot update status of the SecurityGroup custom resource"
 	errUpdate           = "failed to update the SecurityGroup resource"
 	errCreateTags       = "failed to create tags for the Security Group resource"
+	errDeleteTags       = "failed to delete tags for the Security Group resource"
 )
 
 // SetupSecurityGroup adds a controller that reconciles SecurityGroups.
@@ -216,10 +217,20 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 		return managed.ExternalUpdate{}, errors.New(errUpdate)
 	}
 
-	if len(patch.Tags) != 0 {
+	add, remove := awsclient.DiffEC2Tags(v1beta1.GenerateEC2Tags(cr.Spec.ForProvider.Tags), response.SecurityGroups[0].Tags)
+	if len(remove) > 0 {
+		if _, err := e.sg.DeleteTags(ctx, &awsec2.DeleteTagsInput{
+			Resources: []string{meta.GetExternalName(cr)},
+			Tags:      remove,
+		}); err != nil {
+			return managed.ExternalUpdate{}, awsclient.Wrap(err, errDeleteTags)
+		}
+	}
+
+	if len(add) > 0 {
 		if _, err := e.sg.CreateTags(ctx, &awsec2.CreateTagsInput{
 			Resources: []string{meta.GetExternalName(cr)},
-			Tags:      v1beta1.GenerateEC2Tags(cr.Spec.ForProvider.Tags),
+			Tags:      add,
 		}); err != nil {
 			return managed.ExternalUpdate{}, awsclient.Wrap(err, errCreateTags)
 		}

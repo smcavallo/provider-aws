@@ -46,14 +46,16 @@ import (
 	"github.com/crossplane/provider-aws/pkg/controller/dynamodb/backup"
 	"github.com/crossplane/provider-aws/pkg/controller/dynamodb/globaltable"
 	"github.com/crossplane/provider-aws/pkg/controller/dynamodb/table"
-	"github.com/crossplane/provider-aws/pkg/controller/ec2/elasticip"
+	"github.com/crossplane/provider-aws/pkg/controller/ec2/address"
 	"github.com/crossplane/provider-aws/pkg/controller/ec2/internetgateway"
 	"github.com/crossplane/provider-aws/pkg/controller/ec2/natgateway"
 	"github.com/crossplane/provider-aws/pkg/controller/ec2/routetable"
 	"github.com/crossplane/provider-aws/pkg/controller/ec2/securitygroup"
 	"github.com/crossplane/provider-aws/pkg/controller/ec2/subnet"
 	"github.com/crossplane/provider-aws/pkg/controller/ec2/vpc"
+	"github.com/crossplane/provider-aws/pkg/controller/ec2/vpccidrblock"
 	"github.com/crossplane/provider-aws/pkg/controller/ecr/repository"
+	"github.com/crossplane/provider-aws/pkg/controller/ecr/repositorypolicy"
 	"github.com/crossplane/provider-aws/pkg/controller/efs/filesystem"
 	"github.com/crossplane/provider-aws/pkg/controller/eks"
 	"github.com/crossplane/provider-aws/pkg/controller/eks/fargateprofile"
@@ -73,12 +75,16 @@ import (
 	"github.com/crossplane/provider-aws/pkg/controller/notification/snssubscription"
 	"github.com/crossplane/provider-aws/pkg/controller/notification/snstopic"
 	"github.com/crossplane/provider-aws/pkg/controller/rds/dbcluster"
+	"github.com/crossplane/provider-aws/pkg/controller/rds/dbparametergroup"
 	"github.com/crossplane/provider-aws/pkg/controller/redshift"
 	"github.com/crossplane/provider-aws/pkg/controller/route53/hostedzone"
 	"github.com/crossplane/provider-aws/pkg/controller/route53/resourcerecordset"
 	"github.com/crossplane/provider-aws/pkg/controller/s3"
 	"github.com/crossplane/provider-aws/pkg/controller/s3/bucketpolicy"
 	"github.com/crossplane/provider-aws/pkg/controller/secretsmanager/secret"
+	"github.com/crossplane/provider-aws/pkg/controller/servicediscovery/httpnamespace"
+	"github.com/crossplane/provider-aws/pkg/controller/servicediscovery/privatednsnamespace"
+	"github.com/crossplane/provider-aws/pkg/controller/servicediscovery/publicdnsnamespace"
 	"github.com/crossplane/provider-aws/pkg/controller/sfn/activity"
 	"github.com/crossplane/provider-aws/pkg/controller/sfn/statemachine"
 	"github.com/crossplane/provider-aws/pkg/controller/sqs/queue"
@@ -125,8 +131,9 @@ func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 		snssubscription.SetupSubscription,
 		queue.SetupQueue,
 		redshift.SetupCluster,
-		elasticip.SetupElasticIP,
+		address.SetupAddress,
 		repository.SetupRepository,
+		repositorypolicy.SetupRepositoryPolicy,
 		api.SetupAPI,
 		stage.SetupStage,
 		route.SetupRoute,
@@ -148,6 +155,11 @@ func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 		key.SetupKey,
 		filesystem.SetupFileSystem,
 		dbcluster.SetupDBCluster,
+		dbparametergroup.SetupDBParameterGroup,
+		vpccidrblock.SetupVPCCIDRBlock,
+		privatednsnamespace.SetupPrivateDNSNamespace,
+		publicdnsnamespace.SetupPublicDNSNamespace,
+		httpnamespace.SetupHTTPNamespace,
 	} {
 		if err := setup(mgr, l, rl); err != nil {
 			return err

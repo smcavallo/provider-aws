@@ -1,5 +1,5 @@
 /*
-Copyright 2020 The Crossplane Authors.
+Copyright 2021 The Crossplane Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 // +kubebuilder:object:generate=true
-// +groupName=network.aws.crossplane.io
+// +groupName=ec2.aws.crossplane.io
 // +versionName=v1alpha1
 
 package v1alpha1
@@ -40,14 +40,14 @@ var (
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
 )
 
-// ElasticIP type metadata.
+// VPCCIDRBlock type metadata.
 var (
-	ElasticIPKind             = reflect.TypeOf(ElasticIP{}).Name()
-	ElasticIPGroupKind        = schema.GroupKind{Group: Group, Kind: ElasticIPKind}.String()
-	ElasticIPKindAPIVersion   = ElasticIPKind + "." + SchemeGroupVersion.String()
-	ElasticIPGroupVersionKind = SchemeGroupVersion.WithKind(ElasticIPKind)
+	VPCCIDRBlockKind             = reflect.TypeOf(VPCCIDRBlock{}).Name()
+	VPCCIDRBlockGroupKind        = schema.GroupKind{Group: Group, Kind: VPCCIDRBlockKind}.String()
+	VPCCIDRBlockKindAPIVersion   = VPCCIDRBlockKind + "." + SchemeGroupVersion.String()
+	VPCCIDRBlockGroupVersionKind = SchemeGroupVersion.WithKind(VPCCIDRBlockKind)
 )
 
 func init() {
-	SchemeBuilder.Register(&ElasticIP{}, &ElasticIPList{})
+	SchemeBuilder.Register(&VPCCIDRBlock{}, &VPCCIDRBlockList{})
 }

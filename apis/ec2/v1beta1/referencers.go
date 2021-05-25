@@ -25,8 +25,6 @@ import (
 
 	"github.com/crossplane/crossplane-runtime/pkg/reference"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
-
-	"github.com/crossplane/provider-aws/apis/ec2/v1alpha1"
 )
 
 // SecurityGroupName returns the spec.groupName of a SecurityGroup.
@@ -211,10 +209,11 @@ func (mg *NATGateway) ResolveReferences(ctx context.Context, c client.Reader) er
 	// // Resolve spec.elasticIp
 	AllocationIDResponse, err := r.Resolve(ctx, reference.ResolutionRequest{
 		CurrentValue: reference.FromPtrValue(mg.Spec.ForProvider.AllocationID),
-		Reference:    mg.Spec.ForProvider.AllocationIDRef,
-		Selector:     mg.Spec.ForProvider.AllocationIDSelector,
-		To:           reference.To{Managed: &v1alpha1.ElasticIP{}, List: &v1alpha1.ElasticIPList{}},
-		Extract:      reference.ExternalName(),
+
+		Reference: mg.Spec.ForProvider.AllocationIDRef,
+		Selector:  mg.Spec.ForProvider.AllocationIDSelector,
+		To:        reference.To{Managed: &Address{}, List: &AddressList{}},
+		Extract:   reference.ExternalName(),
 	})
 	if err != nil {
 		return err

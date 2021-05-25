@@ -37,6 +37,7 @@ type SecurityGroupClient interface {
 	AuthorizeSecurityGroupEgress(ctx context.Context, input *ec2.AuthorizeSecurityGroupEgressInput, opts ...func(*ec2.Options)) (*ec2.AuthorizeSecurityGroupEgressOutput, error)
 	RevokeSecurityGroupEgress(ctx context.Context, input *ec2.RevokeSecurityGroupEgressInput, opts ...func(*ec2.Options)) (*ec2.RevokeSecurityGroupEgressOutput, error)
 	CreateTags(ctx context.Context, input *ec2.CreateTagsInput, opts ...func(*ec2.Options)) (*ec2.CreateTagsOutput, error)
+	DeleteTags(ctx context.Context, input *ec2.DeleteTagsInput, opts ...func(*ec2.Options)) (*ec2.DeleteTagsOutput, error)
 }
 
 // NewSecurityGroupClient generates client for AWS Security Group API
@@ -152,7 +153,7 @@ func GenerateIPPermissions(objectPerms []ec2types.IpPermission) []v1beta1.IPPerm
 		permissions[i] = ipPerm
 	}
 	sort.Slice(permissions, func(i, j int) bool {
-		return *permissions[i].FromPort < *permissions[j].FromPort
+		return awsgo.ToInt32(permissions[i].FromPort) < awsgo.ToInt32(permissions[j].FromPort)
 	})
 	return permissions
 }
@@ -306,10 +307,10 @@ func CreateSGPatch(in ec2types.SecurityGroup, target v1beta1.SecurityGroupParame
 	}
 
 	sort.Slice(target.Egress, func(i, j int) bool {
-		return *target.Egress[i].FromPort < *target.Egress[j].FromPort
+		return awsgo.ToInt32(target.Egress[i].FromPort) < awsgo.ToInt32(target.Egress[j].FromPort)
 	})
 	sort.Slice(target.Ingress, func(i, j int) bool {
-		return *target.Ingress[i].FromPort < *target.Ingress[j].FromPort
+		return awsgo.ToInt32(target.Ingress[i].FromPort) < awsgo.ToInt32(target.Ingress[j].FromPort)
 	})
 
 	jsonPatch, err := awsclients.CreateJSONPatch(*currentParams, target)

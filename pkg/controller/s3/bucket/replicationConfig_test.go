@@ -177,7 +177,7 @@ func TestReplicationObserve(t *testing.T) {
 				b: s3Testing.Bucket(s3Testing.WithReplConfig(nil)),
 				cl: NewReplicationConfigurationClient(fake.MockBucketClient{
 					MockGetBucketReplication: func(ctx context.Context, input *s3.GetBucketReplicationInput, opts []func(*s3.Options)) (*s3.GetBucketReplicationOutput, error) {
-						return nil, &smithy.GenericAPIError{Code: clientss3.ReplicationErrCode}
+						return nil, &smithy.GenericAPIError{Code: clientss3.ReplicationNotFoundErrCode}
 					},
 				}),
 			},
@@ -380,7 +380,7 @@ func TestReplicationLateInit(t *testing.T) {
 				b: s3Testing.Bucket(),
 				cl: NewReplicationConfigurationClient(fake.MockBucketClient{
 					MockGetBucketReplication: func(ctx context.Context, input *s3.GetBucketReplicationInput, opts []func(*s3.Options)) (*s3.GetBucketReplicationOutput, error) {
-						return &s3.GetBucketReplicationOutput{}, &smithy.GenericAPIError{Code: clientss3.ReplicationErrCode}
+						return &s3.GetBucketReplicationOutput{}, &smithy.GenericAPIError{Code: clientss3.ReplicationNotFoundErrCode}
 					},
 				}),
 			},

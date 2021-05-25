@@ -9,19 +9,19 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go"
 
-	"github.com/crossplane/provider-aws/apis/ec2/v1alpha1"
+	"github.com/crossplane/provider-aws/apis/ec2/v1beta1"
 	awsclients "github.com/crossplane/provider-aws/pkg/clients"
 )
 
 const (
-	// ElasticIPAddressNotFound address not found
-	ElasticIPAddressNotFound = "InvalidAddress.NotFound"
-	// ElasticIPAllocationNotFound address not found by allocation
-	ElasticIPAllocationNotFound = "InvalidAllocationID.NotFound"
+	// AddressAddressNotFound address not found
+	AddressAddressNotFound = "InvalidAddress.NotFound"
+	// AddressAllocationNotFound addreess not found by allocation
+	AddressAllocationNotFound = "InvalidAllocationID.NotFound"
 )
 
-// ElasticIPClient is the external client used for ElasticIP Custom Resource
-type ElasticIPClient interface {
+// AddressClient is the external client used for ElasticIP Custom Resource
+type AddressClient interface {
 	AllocateAddress(ctx context.Context, input *ec2.AllocateAddressInput, opts ...func(*ec2.Options)) (*ec2.AllocateAddressOutput, error)
 	DescribeAddresses(ctx context.Context, input *ec2.DescribeAddressesInput, opts ...func(*ec2.Options)) (*ec2.DescribeAddressesOutput, error)
 	ReleaseAddress(ctx context.Context, input *ec2.ReleaseAddressInput, opts ...func(*ec2.Options)) (*ec2.ReleaseAddressOutput, error)
@@ -31,17 +31,17 @@ type ElasticIPClient interface {
 // IsAddressNotFoundErr returns true if the error is because the address doesn't exist
 func IsAddressNotFoundErr(err error) bool {
 	if awsErr, ok := err.(smithy.APIError); ok {
-		if awsErr.ErrorCode() == ElasticIPAddressNotFound || awsErr.ErrorCode() == ElasticIPAllocationNotFound {
+		if awsErr.ErrorCode() == AddressAddressNotFound || awsErr.ErrorCode() == AddressAllocationNotFound {
 			return true
 		}
 	}
 	return false
 }
 
-// GenerateElasticIPObservation is used to produce v1alpha1.ElasticIPObservation from
+// GenerateAddressObservation is used to produce v1beta1.AddressObservation from
 // ec2.Subnet
-func GenerateElasticIPObservation(address ec2types.Address) v1alpha1.ElasticIPObservation {
-	o := v1alpha1.ElasticIPObservation{
+func GenerateAddressObservation(address ec2types.Address) v1beta1.AddressObservation {
+	o := v1beta1.AddressObservation{
 		AllocationID:            aws.ToString(address.AllocationId),
 		AssociationID:           aws.ToString(address.AssociationId),
 		CustomerOwnedIP:         aws.ToString(address.CustomerOwnedIp),
@@ -57,9 +57,9 @@ func GenerateElasticIPObservation(address ec2types.Address) v1alpha1.ElasticIPOb
 	return o
 }
 
-// LateInitializeElasticIP fills the empty fields in *v1alpha1.ElasticIPParameters with
+// LateInitializeAddress fills the empty fields in *v1beta1.AddressParameters with
 // the values seen in ec2types.Address.
-func LateInitializeElasticIP(in *v1alpha1.ElasticIPParameters, a *ec2types.Address) { // nolint:gocyclo
+func LateInitializeAddress(in *v1beta1.AddressParameters, a *ec2types.Address) { // nolint:gocyclo
 	if a == nil {
 		return
 	}
@@ -73,18 +73,18 @@ func LateInitializeElasticIP(in *v1alpha1.ElasticIPParameters, a *ec2types.Addre
 	}
 }
 
-// IsElasticIPUpToDate checks whether there is a change in any of the modifiable fields.
-func IsElasticIPUpToDate(e v1alpha1.ElasticIPParameters, a ec2types.Address) bool {
+// IsAddressUpToDate checks whether there is a change in any of the modifiable fields.
+func IsAddressUpToDate(e v1beta1.AddressParameters, a ec2types.Address) bool {
 	return CompareTags(e.Tags, a.Tags)
 }
 
 // IsStandardDomain checks whether it is set for standard domain
-func IsStandardDomain(e v1alpha1.ElasticIPParameters) bool {
+func IsStandardDomain(e v1beta1.AddressParameters) bool {
 	return e.Domain != nil && *e.Domain == *aws.String(string(ec2types.DomainTypeStandard))
 }
 
 // GenerateEC2Tags generates a tag array with type that EC2 client expects.
-func GenerateEC2Tags(tags []v1alpha1.Tag) []ec2types.Tag {
+func GenerateEC2Tags(tags []v1beta1.Tag) []ec2types.Tag {
 	res := make([]ec2types.Tag, len(tags))
 	for i, t := range tags {
 		res[i] = ec2types.Tag{Key: aws.String(t.Key), Value: aws.String(t.Value)}
@@ -93,20 +93,20 @@ func GenerateEC2Tags(tags []v1alpha1.Tag) []ec2types.Tag {
 }
 
 // BuildFromEC2Tags returns a list of tags, off of the given ec2 tags
-func BuildFromEC2Tags(tags []ec2types.Tag) []v1alpha1.Tag {
+func BuildFromEC2Tags(tags []ec2types.Tag) []v1beta1.Tag {
 	if len(tags) < 1 {
 		return nil
 	}
-	res := make([]v1alpha1.Tag, len(tags))
+	res := make([]v1beta1.Tag, len(tags))
 	for i, t := range tags {
-		res[i] = v1alpha1.Tag{Key: aws.ToString(t.Key), Value: aws.ToString(t.Value)}
+		res[i] = v1beta1.Tag{Key: aws.ToString(t.Key), Value: aws.ToString(t.Value)}
 	}
 
 	return res
 }
 
 // CompareTags compares arrays of v1beta1.Tag and ec2types.Tag
-func CompareTags(tags []v1alpha1.Tag, ec2Tags []ec2types.Tag) bool {
+func CompareTags(tags []v1beta1.Tag, ec2Tags []ec2types.Tag) bool {
 	if len(tags) != len(ec2Tags) {
 		return false
 	}
@@ -123,7 +123,7 @@ func CompareTags(tags []v1alpha1.Tag, ec2Tags []ec2types.Tag) bool {
 }
 
 // SortTags sorts array of v1beta1.Tag and ec2types.Tag on 'Key'
-func SortTags(tags []v1alpha1.Tag, ec2Tags []ec2types.Tag) {
+func SortTags(tags []v1beta1.Tag, ec2Tags []ec2types.Tag) {
 	sort.Slice(tags, func(i, j int) bool {
 		return tags[i].Key < tags[j].Key
 	})

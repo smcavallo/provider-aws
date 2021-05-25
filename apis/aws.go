@@ -44,6 +44,7 @@ import (
 	s3v1alpha2 "github.com/crossplane/provider-aws/apis/s3/v1alpha3"
 	s3v1beta1 "github.com/crossplane/provider-aws/apis/s3/v1beta1"
 	secretsmanagerv1alpha1 "github.com/crossplane/provider-aws/apis/secretsmanager/v1alpha1"
+	servicediscoveryv1alpha1 "github.com/crossplane/provider-aws/apis/servicediscovery/v1alpha1"
 	sfnv1alpha1 "github.com/crossplane/provider-aws/apis/sfn/v1alpha1"
 	sqsv1beta1 "github.com/crossplane/provider-aws/apis/sqs/v1beta1"
 	awsv1alpha3 "github.com/crossplane/provider-aws/apis/v1alpha3"
@@ -61,7 +62,6 @@ func init() {
 		identityv1beta1.SchemeBuilder.AddToScheme,
 		route53v1alpha1.SchemeBuilder.AddToScheme,
 		notificationv1alpha3.SchemeBuilder.AddToScheme,
-		ec2v1alpha1.SchemeBuilder.AddToScheme,
 		ec2v1beta1.SchemeBuilder.AddToScheme,
 		awsv1alpha3.SchemeBuilder.AddToScheme,
 		awsv1beta1.SchemeBuilder.AddToScheme,
@@ -69,6 +69,7 @@ func init() {
 		s3v1alpha2.SchemeBuilder.AddToScheme,
 		s3v1beta1.SchemeBuilder.AddToScheme,
 		secretsmanagerv1alpha1.SchemeBuilder.AddToScheme,
+		servicediscoveryv1alpha1.SchemeBuilder.AddToScheme,
 		acmpcav1alpha1.SchemeBuilder.AddToScheme,
 		eksv1beta1.SchemeBuilder.AddToScheme,
 		sqsv1beta1.SchemeBuilder.AddToScheme,
@@ -81,6 +82,7 @@ func init() {
 		kmsv1alpha1.SchemeBuilder.AddToScheme,
 		efsv1alpha1.SchemeBuilder.AddToScheme,
 		rdsv1alpha1.SchemeBuilder.AddToScheme,
+		ec2v1alpha1.SchemeBuilder.AddToScheme,
 	)
 }
 

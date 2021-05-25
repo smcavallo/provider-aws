@@ -215,7 +215,7 @@ func TestLifecycleObserve(t *testing.T) {
 				b: s3Testing.Bucket(s3Testing.WithLifecycleConfig(nil)),
 				cl: NewLifecycleConfigurationClient(fake.MockBucketClient{
 					MockGetBucketLifecycleConfiguration: func(ctx context.Context, input *s3.GetBucketLifecycleConfigurationInput, opts []func(*s3.Options)) (*s3.GetBucketLifecycleConfigurationOutput, error) {
-						return nil, &smithy.GenericAPIError{Code: clients3.LifecycleErrCode}
+						return nil, &smithy.GenericAPIError{Code: clients3.LifecycleNotFoundErrCode}
 					},
 				}),
 			},
@@ -418,7 +418,7 @@ func TestLifecycleLateInit(t *testing.T) {
 				b: s3Testing.Bucket(),
 				cl: NewLifecycleConfigurationClient(fake.MockBucketClient{
 					MockGetBucketLifecycleConfiguration: func(ctx context.Context, input *s3.GetBucketLifecycleConfigurationInput, opts []func(*s3.Options)) (*s3.GetBucketLifecycleConfigurationOutput, error) {
-						return &s3.GetBucketLifecycleConfigurationOutput{}, &smithy.GenericAPIError{Code: clients3.LifecycleErrCode}
+						return &s3.GetBucketLifecycleConfigurationOutput{}, &smithy.GenericAPIError{Code: clients3.LifecycleNotFoundErrCode}
 					},
 				}),
 			},

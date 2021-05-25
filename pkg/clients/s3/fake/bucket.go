@@ -77,6 +77,10 @@ type MockBucketClient struct {
 
 	MockGetBucketAcl func(ctx context.Context, input *s3.GetBucketAclInput, opts []func(*s3.Options)) (*s3.GetBucketAclOutput, error) //nolint
 	MockPutBucketAcl func(ctx context.Context, input *s3.PutBucketAclInput, opts []func(*s3.Options)) (*s3.PutBucketAclOutput, error) //nolint
+
+	MockGetPublicAccessBlock    func(ctx context.Context, input *s3.GetPublicAccessBlockInput, opts []func(*s3.Options)) (*s3.GetPublicAccessBlockOutput, error)
+	MockPutPublicAccessBlock    func(ctx context.Context, input *s3.PutPublicAccessBlockInput, opts []func(*s3.Options)) (*s3.PutPublicAccessBlockOutput, error)
+	MockDeletePublicAccessBlock func(ctx context.Context, input *s3.DeletePublicAccessBlockInput, opts []func(*s3.Options)) (*s3.DeletePublicAccessBlockOutput, error)
 }
 
 // HeadBucket is the fake method call to invoke the internal mock method
@@ -252,4 +256,19 @@ func (m MockBucketClient) GetBucketAcl(ctx context.Context, input *s3.GetBucketA
 // PutBucketAcl is the fake method call to invoke the internal mock method
 func (m MockBucketClient) PutBucketAcl(ctx context.Context, input *s3.PutBucketAclInput, opts ...func(*s3.Options)) (*s3.PutBucketAclOutput, error) { //nolint
 	return m.MockPutBucketAcl(ctx, input, opts)
+}
+
+// GetPublicAccessBlock is the fake method call to invoke the internal mock method
+func (m MockBucketClient) GetPublicAccessBlock(ctx context.Context, input *s3.GetPublicAccessBlockInput, opts ...func(*s3.Options)) (*s3.GetPublicAccessBlockOutput, error) {
+	return m.MockGetPublicAccessBlock(ctx, input, opts)
+}
+
+// PutPublicAccessBlock is the fake method call to invoke the internal mock method
+func (m MockBucketClient) PutPublicAccessBlock(ctx context.Context, input *s3.PutPublicAccessBlockInput, opts ...func(*s3.Options)) (*s3.PutPublicAccessBlockOutput, error) {
+	return m.MockPutPublicAccessBlock(ctx, input, opts)
+}
+
+// DeletePublicAccessBlock is the fake method call to invoke the internal mock method
+func (m MockBucketClient) DeletePublicAccessBlock(ctx context.Context, input *s3.DeletePublicAccessBlockInput, opts ...func(*s3.Options)) (*s3.DeletePublicAccessBlockOutput, error) {
+	return m.MockDeletePublicAccessBlock(ctx, input, opts)
 }

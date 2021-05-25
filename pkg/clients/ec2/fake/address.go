@@ -25,10 +25,10 @@ import (
 )
 
 // this ensures that the mock implements the client interface
-var _ clientset.ElasticIPClient = (*MockElasticIPClient)(nil)
+var _ clientset.AddressClient = (*MockAddressClient)(nil)
 
-// MockElasticIPClient is a type that implements all the methods for ElasticIPClient interface
-type MockElasticIPClient struct {
+// MockAddressClient is a type that implements all the methods for ElasticIPClient interface
+type MockAddressClient struct {
 	MockAllocate   func(ctx context.Context, input *ec2.AllocateAddressInput, opts []func(*ec2.Options)) (*ec2.AllocateAddressOutput, error)
 	MockRelease    func(ctx context.Context, input *ec2.ReleaseAddressInput, opts []func(*ec2.Options)) (*ec2.ReleaseAddressOutput, error)
 	MockDescribe   func(ctx context.Context, input *ec2.DescribeAddressesInput, opts []func(*ec2.Options)) (*ec2.DescribeAddressesOutput, error)
@@ -36,21 +36,21 @@ type MockElasticIPClient struct {
 }
 
 // AllocateAddress mocks AllocateAddress method
-func (m *MockElasticIPClient) AllocateAddress(ctx context.Context, input *ec2.AllocateAddressInput, opts ...func(*ec2.Options)) (*ec2.AllocateAddressOutput, error) {
+func (m *MockAddressClient) AllocateAddress(ctx context.Context, input *ec2.AllocateAddressInput, opts ...func(*ec2.Options)) (*ec2.AllocateAddressOutput, error) {
 	return m.MockAllocate(ctx, input, opts)
 }
 
 // ReleaseAddress mocks ReleaseAddress method
-func (m *MockElasticIPClient) ReleaseAddress(ctx context.Context, input *ec2.ReleaseAddressInput, opts ...func(*ec2.Options)) (*ec2.ReleaseAddressOutput, error) {
+func (m *MockAddressClient) ReleaseAddress(ctx context.Context, input *ec2.ReleaseAddressInput, opts ...func(*ec2.Options)) (*ec2.ReleaseAddressOutput, error) {
 	return m.MockRelease(ctx, input, opts)
 }
 
 // DescribeAddresses mocks DescribeAddresses method
-func (m *MockElasticIPClient) DescribeAddresses(ctx context.Context, input *ec2.DescribeAddressesInput, opts ...func(*ec2.Options)) (*ec2.DescribeAddressesOutput, error) {
+func (m *MockAddressClient) DescribeAddresses(ctx context.Context, input *ec2.DescribeAddressesInput, opts ...func(*ec2.Options)) (*ec2.DescribeAddressesOutput, error) {
 	return m.MockDescribe(ctx, input, opts)
 }
 
 // CreateTags mocks CreateTags method
-func (m *MockElasticIPClient) CreateTags(ctx context.Context, input *ec2.CreateTagsInput, opts ...func(*ec2.Options)) (*ec2.CreateTagsOutput, error) {
+func (m *MockAddressClient) CreateTags(ctx context.Context, input *ec2.CreateTagsInput, opts ...func(*ec2.Options)) (*ec2.CreateTagsOutput, error) {
 	return m.MockCreateTags(ctx, input, opts)
 }

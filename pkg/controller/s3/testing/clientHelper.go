@@ -25,10 +25,10 @@ func Client(m ...ClientModifier) *fake.MockBucketClient {
 			return &awss3.GetBucketAccelerateConfigurationOutput{}, nil
 		},
 		MockGetBucketCors: func(ctx context.Context, input *awss3.GetBucketCorsInput, opts []func(*awss3.Options)) (*awss3.GetBucketCorsOutput, error) {
-			return &awss3.GetBucketCorsOutput{}, &smithy.GenericAPIError{Code: clients3.CORSErrCode}
+			return &awss3.GetBucketCorsOutput{}, &smithy.GenericAPIError{Code: clients3.CORSNotFoundErrCode}
 		},
 		MockGetBucketLifecycleConfiguration: func(ctx context.Context, input *awss3.GetBucketLifecycleConfigurationInput, opts []func(*awss3.Options)) (*awss3.GetBucketLifecycleConfigurationOutput, error) {
-			return &awss3.GetBucketLifecycleConfigurationOutput{}, &smithy.GenericAPIError{Code: clients3.LifecycleErrCode}
+			return &awss3.GetBucketLifecycleConfigurationOutput{}, &smithy.GenericAPIError{Code: clients3.LifecycleNotFoundErrCode}
 		},
 		MockGetBucketLogging: func(ctx context.Context, input *awss3.GetBucketLoggingInput, opts []func(*awss3.Options)) (*awss3.GetBucketLoggingOutput, error) {
 			return &awss3.GetBucketLoggingOutput{}, nil
@@ -37,25 +37,34 @@ func Client(m ...ClientModifier) *fake.MockBucketClient {
 			return &awss3.GetBucketNotificationConfigurationOutput{}, nil
 		},
 		MockGetBucketReplication: func(ctx context.Context, input *awss3.GetBucketReplicationInput, opts []func(*awss3.Options)) (*awss3.GetBucketReplicationOutput, error) {
-			return nil, &smithy.GenericAPIError{Code: clients3.ReplicationErrCode}
+			return nil, &smithy.GenericAPIError{Code: clients3.ReplicationNotFoundErrCode}
 		},
 		MockGetBucketRequestPayment: func(ctx context.Context, input *awss3.GetBucketRequestPaymentInput, opts []func(*awss3.Options)) (*awss3.GetBucketRequestPaymentOutput, error) {
 			return &awss3.GetBucketRequestPaymentOutput{}, nil
 		},
 		MockGetBucketEncryption: func(ctx context.Context, input *awss3.GetBucketEncryptionInput, opts []func(*awss3.Options)) (*awss3.GetBucketEncryptionOutput, error) {
-			return nil, &smithy.GenericAPIError{Code: s3.SSEErrCode}
+			return nil, &smithy.GenericAPIError{Code: s3.SSENotFoundErrCode}
 		},
 		MockGetBucketTagging: func(ctx context.Context, input *awss3.GetBucketTaggingInput, opts []func(*awss3.Options)) (*awss3.GetBucketTaggingOutput, error) {
-			return nil, &smithy.GenericAPIError{Code: clients3.TaggingErrCode}
+			return nil, &smithy.GenericAPIError{Code: clients3.TaggingNotFoundErrCode}
 		},
 		MockGetBucketVersioning: func(ctx context.Context, input *awss3.GetBucketVersioningInput, opts []func(*awss3.Options)) (*awss3.GetBucketVersioningOutput, error) {
 			return &awss3.GetBucketVersioningOutput{}, nil
 		},
 		MockGetBucketWebsite: func(ctx context.Context, input *awss3.GetBucketWebsiteInput, opts []func(*awss3.Options)) (*awss3.GetBucketWebsiteOutput, error) {
-			return nil, &smithy.GenericAPIError{Code: clients3.WebsiteErrCode}
+			return nil, &smithy.GenericAPIError{Code: clients3.WebsiteNotFoundErrCode}
 		},
 		MockPutBucketAcl: func(ctx context.Context, input *awss3.PutBucketAclInput, opts []func(*awss3.Options)) (*awss3.PutBucketAclOutput, error) {
 			return &awss3.PutBucketAclOutput{}, nil
+		},
+		MockGetPublicAccessBlock: func(ctx context.Context, input *awss3.GetPublicAccessBlockInput, opts []func(*awss3.Options)) (*awss3.GetPublicAccessBlockOutput, error) {
+			return &awss3.GetPublicAccessBlockOutput{}, nil
+		},
+		MockPutPublicAccessBlock: func(ctx context.Context, input *awss3.PutPublicAccessBlockInput, opts []func(*awss3.Options)) (*awss3.PutPublicAccessBlockOutput, error) {
+			return &awss3.PutPublicAccessBlockOutput{}, nil
+		},
+		MockDeletePublicAccessBlock: func(ctx context.Context, input *awss3.DeletePublicAccessBlockInput, opts []func(*awss3.Options)) (*awss3.DeletePublicAccessBlockOutput, error) {
+			return &awss3.DeletePublicAccessBlockOutput{}, nil
 		},
 	}
 	for _, v := range m {

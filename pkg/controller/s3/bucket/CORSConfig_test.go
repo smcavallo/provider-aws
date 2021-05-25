@@ -123,7 +123,7 @@ func TestCORSObserve(t *testing.T) {
 				b: s3Testing.Bucket(s3Testing.WithCORSConfig(nil)),
 				cl: NewCORSConfigurationClient(fake.MockBucketClient{
 					MockGetBucketCors: func(ctx context.Context, input *s3.GetBucketCorsInput, opts []func(*s3.Options)) (*s3.GetBucketCorsOutput, error) {
-						return nil, &smithy.GenericAPIError{Code: clientss3.CORSErrCode}
+						return nil, &smithy.GenericAPIError{Code: clientss3.CORSNotFoundErrCode}
 					},
 				}),
 			},
@@ -328,7 +328,7 @@ func TestCORSLateInit(t *testing.T) {
 
 				cl: NewCORSConfigurationClient(fake.MockBucketClient{
 					MockGetBucketCors: func(ctx context.Context, input *s3.GetBucketCorsInput, opts []func(*s3.Options)) (*s3.GetBucketCorsOutput, error) {
-						return &s3.GetBucketCorsOutput{}, &smithy.GenericAPIError{Code: clientss3.CORSErrCode}
+						return &s3.GetBucketCorsOutput{}, &smithy.GenericAPIError{Code: clientss3.CORSNotFoundErrCode}
 					},
 				}),
 			},

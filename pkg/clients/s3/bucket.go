@@ -34,18 +34,23 @@ import (
 
 // See - https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#RESTErrorResponses
 var (
-	// CORSErrCode is the error code sent by AWS when the CORS configuration does not exist
-	CORSErrCode = "NoSuchCORSConfiguration"
-	// ReplicationErrCode is the error code sent by AWS when the replication config does not exist
-	ReplicationErrCode = "ReplicationConfigurationNotFoundError"
-	// LifecycleErrCode is the error code sent by AWS when the lifecycle config does not exist
-	LifecycleErrCode = "NoSuchLifecycleConfiguration"
-	// SSEErrCode is the error code sent by AWS when the SSE config does not exist
-	SSEErrCode = "ServerSideEncryptionConfigurationNotFoundError"
-	// TaggingErrCode is the error code sent by AWS when the tagging does not exist
-	TaggingErrCode = "NoSuchTagSet"
-	// WebsiteErrCode is the error code sent by AWS when the website config does not exist
-	WebsiteErrCode = "NoSuchWebsiteConfiguration"
+	// BucketNotFoundErrCode is the error code sent by AWS when a bucket does not exist
+	BucketNotFoundErrCode = "NotFound"
+	// CORSNotFoundErrCode is the error code sent by AWS when the CORS configuration does not exist
+	CORSNotFoundErrCode = "NoSuchCORSConfiguration"
+	// PublicAccessBlockNotFoundErrCode is NotFound error for PublicAccessBlock
+	PublicAccessBlockNotFoundErrCode = "NoSuchPublicAccessBlockConfiguration"
+	// ReplicationNotFoundErrCode is the error code sent by AWS when the replication config does not exist
+	ReplicationNotFoundErrCode = "ReplicationConfigurationNotFoundError"
+	// LifecycleNotFoundErrCode is the error code sent by AWS when the lifecycle config does not exist
+	LifecycleNotFoundErrCode = "NoSuchLifecycleConfiguration"
+	// SSENotFoundErrCode is the error code sent by AWS when the SSE config does not exist
+	SSENotFoundErrCode = "ServerSideEncryptionConfigurationNotFoundError"
+	// TaggingNotFoundErrCode is the error code sent by AWS when the tagging does not exist
+	TaggingNotFoundErrCode = "NoSuchTagSet"
+	// WebsiteNotFoundErrCode is the error code sent by AWS when the website config does not exist
+	WebsiteNotFoundErrCode = "NoSuchWebsiteConfiguration"
+
 	// MethodNotAllowed is the error code sent by AWS when the request method for an object is not allowed
 	MethodNotAllowed = "MethodNotAllowed"
 	// UnsupportedArgument is the error code sent by AWS when the request fields contain an argument that is not supported
@@ -102,6 +107,9 @@ type BucketClient interface {
 
 	GetBucketAcl(ctx context.Context, input *s3.GetBucketAclInput, opts ...func(*s3.Options)) (*s3.GetBucketAclOutput, error) //nolint
 	PutBucketAcl(ctx context.Context, input *s3.PutBucketAclInput, opts ...func(*s3.Options)) (*s3.PutBucketAclOutput, error) //nolint
+	GetPublicAccessBlock(ctx context.Context, input *s3.GetPublicAccessBlockInput, opts ...func(*s3.Options)) (*s3.GetPublicAccessBlockOutput, error)
+	PutPublicAccessBlock(ctx context.Context, input *s3.PutPublicAccessBlockInput, opts ...func(*s3.Options)) (*s3.PutPublicAccessBlockOutput, error)
+	DeletePublicAccessBlock(ctx context.Context, input *s3.DeletePublicAccessBlockInput, opts ...func(*s3.Options)) (*s3.DeletePublicAccessBlockOutput, error)
 }
 
 // NewClient returns a new client using AWS credentials as JSON encoded data.
@@ -149,7 +157,7 @@ func GenerateBucketObservation(name string) v1beta1.BucketExternalStatus {
 // CORSConfigurationNotFound is parses the aws Error and validates if the cors configuration does not exist
 func CORSConfigurationNotFound(err error) bool {
 	if awsErr, ok := err.(smithy.APIError); ok {
-		if awsErr.ErrorCode() == CORSErrCode {
+		if awsErr.ErrorCode() == CORSNotFoundErrCode {
 			return true
 		}
 	}
@@ -159,7 +167,17 @@ func CORSConfigurationNotFound(err error) bool {
 // ReplicationConfigurationNotFound is parses the aws Error and validates if the replication configuration does not exist
 func ReplicationConfigurationNotFound(err error) bool {
 	if awsErr, ok := err.(smithy.APIError); ok {
-		if awsErr.ErrorCode() == ReplicationErrCode {
+		if awsErr.ErrorCode() == ReplicationNotFoundErrCode {
+			return true
+		}
+	}
+	return false
+}
+
+// PublicAccessBlockConfigurationNotFound is parses the aws Error and validates if the public access block does not exist
+func PublicAccessBlockConfigurationNotFound(err error) bool {
+	if awsErr, ok := err.(smithy.APIError); ok {
+		if awsErr.ErrorCode() == PublicAccessBlockNotFoundErrCode {
 			return true
 		}
 	}
@@ -169,7 +187,7 @@ func ReplicationConfigurationNotFound(err error) bool {
 // LifecycleConfigurationNotFound is parses the aws Error and validates if the lifecycle configuration does not exist
 func LifecycleConfigurationNotFound(err error) bool {
 	if awsErr, ok := err.(smithy.APIError); ok {
-		if awsErr.ErrorCode() == LifecycleErrCode {
+		if awsErr.ErrorCode() == LifecycleNotFoundErrCode {
 			return true
 		}
 	}
@@ -179,7 +197,7 @@ func LifecycleConfigurationNotFound(err error) bool {
 // SSEConfigurationNotFound is parses the aws Error and validates if the SSE configuration does not exist
 func SSEConfigurationNotFound(err error) bool {
 	if awsErr, ok := err.(smithy.APIError); ok {
-		if awsErr.ErrorCode() == SSEErrCode {
+		if awsErr.ErrorCode() == SSENotFoundErrCode {
 			return true
 		}
 	}
@@ -189,7 +207,7 @@ func SSEConfigurationNotFound(err error) bool {
 // TaggingNotFound is parses the aws Error and validates if the tagging configuration does not exist
 func TaggingNotFound(err error) bool {
 	if awsErr, ok := err.(smithy.APIError); ok {
-		if awsErr.ErrorCode() == TaggingErrCode {
+		if awsErr.ErrorCode() == TaggingNotFoundErrCode {
 			return true
 		}
 	}
@@ -199,7 +217,7 @@ func TaggingNotFound(err error) bool {
 // WebsiteConfigurationNotFound is parses the aws Error and validates if the website configuration does not exist
 func WebsiteConfigurationNotFound(err error) bool {
 	if awsErr, ok := err.(smithy.APIError); ok {
-		if awsErr.ErrorCode() == WebsiteErrCode {
+		if awsErr.ErrorCode() == WebsiteNotFoundErrCode {
 			return true
 		}
 	}

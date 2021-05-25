@@ -181,7 +181,7 @@ func TestWebsiteObserve(t *testing.T) {
 				b: s3Testing.Bucket(s3Testing.WithWebConfig(nil)),
 				cl: NewWebsiteConfigurationClient(fake.MockBucketClient{
 					MockGetBucketWebsite: func(ctx context.Context, input *s3.GetBucketWebsiteInput, opts []func(*s3.Options)) (*s3.GetBucketWebsiteOutput, error) {
-						return nil, &smithy.GenericAPIError{Code: clients3.WebsiteErrCode}
+						return nil, &smithy.GenericAPIError{Code: clients3.WebsiteNotFoundErrCode}
 					},
 				}),
 			},
@@ -389,7 +389,7 @@ func TestWebsiteLateInit(t *testing.T) {
 				b: s3Testing.Bucket(),
 				cl: NewWebsiteConfigurationClient(fake.MockBucketClient{
 					MockGetBucketWebsite: func(tx context.Context, input *s3.GetBucketWebsiteInput, opts []func(*s3.Options)) (*s3.GetBucketWebsiteOutput, error) {
-						return nil, &smithy.GenericAPIError{Code: clients3.WebsiteErrCode}
+						return nil, &smithy.GenericAPIError{Code: clients3.WebsiteNotFoundErrCode}
 					},
 				}),
 			},
@@ -403,7 +403,7 @@ func TestWebsiteLateInit(t *testing.T) {
 				b: s3Testing.Bucket(),
 				cl: NewWebsiteConfigurationClient(fake.MockBucketClient{
 					MockGetBucketWebsite: func(tx context.Context, input *s3.GetBucketWebsiteInput, opts []func(*s3.Options)) (*s3.GetBucketWebsiteOutput, error) {
-						return nil, &smithy.GenericAPIError{Code: clients3.WebsiteErrCode}
+						return nil, &smithy.GenericAPIError{Code: clients3.WebsiteNotFoundErrCode}
 					},
 				}),
 			},

@@ -130,7 +130,7 @@ func TestSSEObserve(t *testing.T) {
 				b: s3Testing.Bucket(s3Testing.WithSSEConfig(nil)),
 				cl: NewSSEConfigurationClient(fake.MockBucketClient{
 					MockGetBucketEncryption: func(ctx context.Context, input *s3.GetBucketEncryptionInput, opts []func(*s3.Options)) (*s3.GetBucketEncryptionOutput, error) {
-						return nil, &smithy.GenericAPIError{Code: clients3.SSEErrCode}
+						return nil, &smithy.GenericAPIError{Code: clients3.SSENotFoundErrCode}
 					},
 				}),
 			},
@@ -333,7 +333,7 @@ func TestSSELateInit(t *testing.T) {
 				b: s3Testing.Bucket(),
 				cl: NewSSEConfigurationClient(fake.MockBucketClient{
 					MockGetBucketEncryption: func(ctx context.Context, input *s3.GetBucketEncryptionInput, opts []func(*s3.Options)) (*s3.GetBucketEncryptionOutput, error) {
-						return &s3.GetBucketEncryptionOutput{}, &smithy.GenericAPIError{Code: clients3.SSEErrCode}
+						return &s3.GetBucketEncryptionOutput{}, &smithy.GenericAPIError{Code: clients3.SSENotFoundErrCode}
 					},
 				}),
 			},

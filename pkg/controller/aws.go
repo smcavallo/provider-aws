@@ -71,11 +71,14 @@ import (
 	"github.com/crossplane/provider-aws/pkg/controller/identity/iamrolepolicyattachment"
 	"github.com/crossplane/provider-aws/pkg/controller/identity/iamuser"
 	"github.com/crossplane/provider-aws/pkg/controller/identity/iamuserpolicyattachment"
+	"github.com/crossplane/provider-aws/pkg/controller/identity/openidconnectprovider"
 	"github.com/crossplane/provider-aws/pkg/controller/kms/key"
+	"github.com/crossplane/provider-aws/pkg/controller/lambda/function"
 	"github.com/crossplane/provider-aws/pkg/controller/notification/snssubscription"
 	"github.com/crossplane/provider-aws/pkg/controller/notification/snstopic"
 	"github.com/crossplane/provider-aws/pkg/controller/rds/dbcluster"
 	"github.com/crossplane/provider-aws/pkg/controller/rds/dbparametergroup"
+	"github.com/crossplane/provider-aws/pkg/controller/rds/globalcluster"
 	"github.com/crossplane/provider-aws/pkg/controller/redshift"
 	"github.com/crossplane/provider-aws/pkg/controller/route53/hostedzone"
 	"github.com/crossplane/provider-aws/pkg/controller/route53/resourcerecordset"
@@ -156,10 +159,13 @@ func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 		filesystem.SetupFileSystem,
 		dbcluster.SetupDBCluster,
 		dbparametergroup.SetupDBParameterGroup,
+		globalcluster.SetupGlobalCluster,
 		vpccidrblock.SetupVPCCIDRBlock,
 		privatednsnamespace.SetupPrivateDNSNamespace,
 		publicdnsnamespace.SetupPublicDNSNamespace,
 		httpnamespace.SetupHTTPNamespace,
+		function.SetupFunction,
+		openidconnectprovider.SetupOpenIDConnectProvider,
 	} {
 		if err := setup(mgr, l, rl); err != nil {
 			return err

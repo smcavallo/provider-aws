@@ -20,6 +20,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
+
 	clientset "github.com/crossplane/provider-aws/pkg/clients/ecr"
 )
 

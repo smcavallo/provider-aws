@@ -23,8 +23,8 @@ var (
 	testKey                 = "key"
 	testValue               = "value"
 
-	ec2tag                  = ec2types.Tag{Key: &testKey, Value: &testValue}
-	v1beta1Tag              = v1beta1.Tag{Key: testKey, Value: testValue}
+	ec2tag     = ec2types.Tag{Key: &testKey, Value: &testValue}
+	v1beta1Tag = v1beta1.Tag{Key: testKey, Value: testValue}
 )
 
 func TestGenerateAddressObservation(t *testing.T) {

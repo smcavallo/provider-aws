@@ -18,9 +18,9 @@ package bucket
 
 import (
 	"context"
-	awss3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	awss3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/pkg/errors"
 
 	"github.com/crossplane/crossplane-runtime/pkg/meta"

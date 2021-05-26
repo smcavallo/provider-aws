@@ -44,25 +44,25 @@ func (m *MockOpenIDConnectProviderClient) GetOpenIDConnectProvider(ctx context.C
 
 // CreateOpenIDConnectProvider mocks client call.
 func (m *MockOpenIDConnectProviderClient) CreateOpenIDConnectProvider(ctx context.Context, input *iam.CreateOpenIDConnectProviderInput, opts ...func(*iam.Options)) (*iam.CreateOpenIDConnectProviderOutput, error) {
-	return m.CreateOpenIDConnectProvider(ctx, input)
+	return m.MockCreateOpenIDConnectProvider(ctx, input, opts)
 }
 
 // AddClientIDToOpenIDConnectProvider mocks client call.
 func (m *MockOpenIDConnectProviderClient) AddClientIDToOpenIDConnectProvider(ctx context.Context, input *iam.AddClientIDToOpenIDConnectProviderInput, opts ...func(*iam.Options)) (*iam.AddClientIDToOpenIDConnectProviderOutput, error) {
-	return m.AddClientIDToOpenIDConnectProvider(ctx, input)
+	return m.MockAddClientIDToOpenIDConnectProvider(ctx, input, opts)
 }
 
 // RemoveClientIDFromOpenIDConnectProvider mocks client call.
 func (m *MockOpenIDConnectProviderClient) RemoveClientIDFromOpenIDConnectProvider(ctx context.Context, input *iam.RemoveClientIDFromOpenIDConnectProviderInput, opts ...func(*iam.Options)) (*iam.RemoveClientIDFromOpenIDConnectProviderOutput, error) {
-	return m.RemoveClientIDFromOpenIDConnectProvider(ctx, input)
+	return m.MockRemoveClientIDFromOpenIDConnectProvider(ctx, input, opts)
 }
 
 // UpdateOpenIDConnectProviderThumbprint mocks client call.
 func (m *MockOpenIDConnectProviderClient) UpdateOpenIDConnectProviderThumbprint(ctx context.Context, input *iam.UpdateOpenIDConnectProviderThumbprintInput, opts ...func(*iam.Options)) (*iam.UpdateOpenIDConnectProviderThumbprintOutput, error) {
-	return m.UpdateOpenIDConnectProviderThumbprint(ctx, input)
+	return m.MockUpdateOpenIDConnectProviderThumbprint(ctx, input, opts)
 }
 
 // DeleteOpenIDConnectProvider mocks client call.
 func (m *MockOpenIDConnectProviderClient) DeleteOpenIDConnectProvider(ctx context.Context, input *iam.DeleteOpenIDConnectProviderInput, opts ...func(*iam.Options)) (*iam.DeleteOpenIDConnectProviderOutput, error) {
-	return m.DeleteOpenIDConnectProvider(ctx, input)
+	return m.MockDeleteOpenIDConnectProvider(ctx, input, opts)
 }

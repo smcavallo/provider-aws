@@ -244,12 +244,12 @@ func TestLoggingLateInit(t *testing.T) {
 		"Error": {
 			args: args{
 				b: s3Testing.Bucket(),
-			cl: NewLoggingConfigurationClient(fake.MockBucketClient{
-				MockGetBucketLogging: func(ctx context.Context, input *s3.GetBucketLoggingInput, opts []func(*s3.Options)) (*s3.GetBucketLoggingOutput, error) {
-					return &s3.GetBucketLoggingOutput{}, errBoom
-				},
-			}),
-		},
+				cl: NewLoggingConfigurationClient(fake.MockBucketClient{
+					MockGetBucketLogging: func(ctx context.Context, input *s3.GetBucketLoggingInput, opts []func(*s3.Options)) (*s3.GetBucketLoggingOutput, error) {
+						return &s3.GetBucketLoggingOutput{}, errBoom
+					},
+				}),
+			},
 			want: want{
 				err: awsclient.Wrap(errBoom, loggingGetFailed),
 				cr:  s3Testing.Bucket(),
@@ -258,12 +258,12 @@ func TestLoggingLateInit(t *testing.T) {
 		"NoLateInitEmpty": {
 			args: args{
 				b: s3Testing.Bucket(),
-			cl: NewLoggingConfigurationClient(fake.MockBucketClient{
-				MockGetBucketLogging: func(ctx context.Context, input *s3.GetBucketLoggingInput, opts []func(*s3.Options)) (*s3.GetBucketLoggingOutput, error) {
-					return &s3.GetBucketLoggingOutput{}, nil
-				},
-			}),
-		},
+				cl: NewLoggingConfigurationClient(fake.MockBucketClient{
+					MockGetBucketLogging: func(ctx context.Context, input *s3.GetBucketLoggingInput, opts []func(*s3.Options)) (*s3.GetBucketLoggingOutput, error) {
+						return &s3.GetBucketLoggingOutput{}, nil
+					},
+				}),
+			},
 			want: want{
 				err: nil,
 				cr:  s3Testing.Bucket(),
@@ -272,12 +272,12 @@ func TestLoggingLateInit(t *testing.T) {
 		"SuccessfulLateInit": {
 			args: args{
 				b: s3Testing.Bucket(s3Testing.WithLoggingConfig(nil)),
-			cl: NewLoggingConfigurationClient(fake.MockBucketClient{
-				MockGetBucketLogging: func(ctx context.Context, input *s3.GetBucketLoggingInput, opts []func(*s3.Options)) (*s3.GetBucketLoggingOutput, error) {
-					return &s3.GetBucketLoggingOutput{LoggingEnabled: generateAWSLogging()}, nil
-				},
-			}),
-		},
+				cl: NewLoggingConfigurationClient(fake.MockBucketClient{
+					MockGetBucketLogging: func(ctx context.Context, input *s3.GetBucketLoggingInput, opts []func(*s3.Options)) (*s3.GetBucketLoggingOutput, error) {
+						return &s3.GetBucketLoggingOutput{LoggingEnabled: generateAWSLogging()}, nil
+					},
+				}),
+			},
 			want: want{
 				err: nil,
 				cr:  s3Testing.Bucket(s3Testing.WithLoggingConfig(generateLoggingConfig())),
@@ -286,11 +286,11 @@ func TestLoggingLateInit(t *testing.T) {
 		"NoOpLateInit": {
 			args: args{
 				b: s3Testing.Bucket(s3Testing.WithLoggingConfig(generateLoggingConfig())),
-			cl: NewLoggingConfigurationClient(fake.MockBucketClient{
-				MockGetBucketLogging: func(ctx context.Context, input *s3.GetBucketLoggingInput, opts []func(*s3.Options)) (*s3.GetBucketLoggingOutput, error) {
-					return &s3.GetBucketLoggingOutput{LoggingEnabled: &s3types.LoggingEnabled{}}, nil
-				},
-			}),
+				cl: NewLoggingConfigurationClient(fake.MockBucketClient{
+					MockGetBucketLogging: func(ctx context.Context, input *s3.GetBucketLoggingInput, opts []func(*s3.Options)) (*s3.GetBucketLoggingOutput, error) {
+						return &s3.GetBucketLoggingOutput{LoggingEnabled: &s3types.LoggingEnabled{}}, nil
+					},
+				}),
 			},
 			want: want{
 				err: nil,

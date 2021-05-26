@@ -177,7 +177,7 @@ func TestLateInitializePolicy(t *testing.T) {
 		"AllOptionalFields": {
 			parameters: &v1alpha1.RepositoryPolicyParameters{},
 			policyOutput: &ecr.GetRepositoryPolicyOutput{
-					RegistryId: &testID,
+				RegistryId: &testID,
 			},
 			want: &v1alpha1.RepositoryPolicyParameters{
 				RegistryID: &testID,

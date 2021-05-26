@@ -18,10 +18,10 @@ package openidconnectprovider
 
 import (
 	"context"
-	awsgo "github.com/aws/aws-sdk-go/aws"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
+	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/pkg/errors"

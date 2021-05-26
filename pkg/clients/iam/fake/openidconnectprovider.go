@@ -39,7 +39,7 @@ type MockOpenIDConnectProviderClient struct {
 
 // GetOpenIDConnectProvider mocks client call.
 func (m *MockOpenIDConnectProviderClient) GetOpenIDConnectProvider(ctx context.Context, input *iam.GetOpenIDConnectProviderInput, opts ...func(*iam.Options)) (*iam.GetOpenIDConnectProviderOutput, error) {
-	return m.GetOpenIDConnectProvider(ctx, input)
+	return m.MockGetOpenIDConnectProvider(ctx, input, opts)
 }
 
 // CreateOpenIDConnectProvider mocks client call.

@@ -156,7 +156,6 @@ func newExternal(kube client.Client, client svcsdkapi.SNSAPI, opts []option) *ex
 		postObserve:    nopPostObserve,
 		lateInitialize: nopLateInitialize,
 		isUpToDate:     alwaysUpToDate,
-		filterList:     nopFilterList,
 		preCreate:      nopPreCreate,
 		postCreate:     nopPostCreate,
 		preDelete:      nopPreDelete,

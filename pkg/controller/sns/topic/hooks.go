@@ -44,11 +44,13 @@ func SetupTopic(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) er
 	name := managed.ControllerName(svcapitypes.TopicGroupKind)
 	opts := []option{
 		func(e *external) {
+			e.preObserve = preObserve
 			e.postObserve = postObserve
 			e.postCreate = postCreate
 			u := &updater{client: e.client}
 			e.update = u.update
 			e.isUpToDate = isUpToDate
+			e.lateInitialize = LateInitialize
 		},
 	}
 	return ctrl.NewControllerManagedBy(mgr).
@@ -63,6 +65,11 @@ func SetupTopic(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) er
 			managed.WithInitializers(managed.NewDefaultProviderConfig(mgr.GetClient())),
 			managed.WithLogger(l.WithValues("controller", name)),
 			managed.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name)))))
+}
+
+func preObserve(_ context.Context, cr *svcapitypes.Topic, obj *svcsdk.GetTopicAttributesInput) error {
+	obj.TopicArn = aws.String(meta.GetExternalName(cr))
+	return nil
 }
 
 func postObserve(_ context.Context, cr *svcapitypes.Topic, _ *svcsdk.GetTopicAttributesOutput, obs managed.ExternalObservation, err error) (managed.ExternalObservation, error) {
@@ -80,6 +87,16 @@ func postCreate(_ context.Context, cr *svcapitypes.Topic, resp *svcsdk.CreateTop
 	meta.SetExternalName(cr, aws.StringValue(resp.TopicArn))
 	cre.ExternalNameAssigned = true
 	return cre, nil
+}
+
+// LateInitialize fills the empty fields in *svcapitypes.TopicParameters with
+// the values seen in svcsdk.GetTopicAttributesOutput.
+func LateInitialize(cr *svcapitypes.TopicParameters, resp *svcsdk.GetTopicAttributesOutput) error {
+	cr.DisplayName = resp.Attributes[string(svcapitypes.TopicDisplayName)]
+	cr.DeliveryPolicy = resp.Attributes[string(svcapitypes.TopicDeliveryPolicy)]
+	cr.KMSMasterKeyID = resp.Attributes[string(svcapitypes.TopicKmsMasterKeyID)]
+	cr.Policy = resp.Attributes[string(svcapitypes.TopicPolicy)]
+	return nil
 }
 
 // NOTE(muvaf): The rest is adopted from old SNSTopic implementation
@@ -138,10 +155,7 @@ func GetChangedAttributes(p svcapitypes.TopicParameters, attrs map[string]*strin
 	return changed
 }
 
-func isUpToDate(r bool, cr *svcapitypes.Topic, resp *svcsdk.GetTopicAttributesOutput) (bool, error) {
-	if !r {
-		return r, nil
-	}
+func isUpToDate(cr *svcapitypes.Topic, resp *svcsdk.GetTopicAttributesOutput) (bool, error) {
 	return aws.StringValue(cr.Spec.ForProvider.DeliveryPolicy) == aws.StringValue(resp.Attributes[string(svcapitypes.TopicDeliveryPolicy)]) &&
 		aws.StringValue(cr.Spec.ForProvider.DisplayName) == aws.StringValue(resp.Attributes[string(svcapitypes.TopicDisplayName)]) &&
 		aws.StringValue(cr.Spec.ForProvider.KMSMasterKeyID) == aws.StringValue(resp.Attributes[string(svcapitypes.TopicKmsMasterKeyID)]) &&

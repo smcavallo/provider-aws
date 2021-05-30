@@ -19,24 +19,19 @@ limitations under the License.
 package v1alpha1
 
 import (
+	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-
-	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 )
 
 // TopicParameters defines the desired state of Topic
 type TopicParameters struct {
 	// Region is which region the Topic will be created.
 	// +kubebuilder:validation:Required
-	Region string `json:"region"`
-
+	Region         string  `json:"region"`
 	DeliveryPolicy *string `json:"deliveryPolicy,omitempty"`
-
-	DisplayName *string `json:"displayName,omitempty"`
-
+	DisplayName    *string `json:"displayName,omitempty"`
 	KMSMasterKeyID *string `json:"kmsMasterKeyID,omitempty"`
-
 	// The name of the topic you want to create.
 	//
 	// Constraints: Topic names must be made up of only uppercase and lowercase
@@ -45,18 +40,13 @@ type TopicParameters struct {
 	//
 	// For a FIFO (first-in-first-out) topic, the name must end with the .fifo suffix.
 	// +kubebuilder:validation:Required
-	Name *string `json:"name"`
-
+	Name   *string `json:"name"`
 	Policy *string `json:"policy,omitempty"`
-
 	// The list of tags to add to a new topic.
 	//
 	// To be able to tag a topic on creation, you must have the sns:CreateTopic
 	// and sns:TagResource permissions.
-	Tags []*Tag `json:"tags,omitempty"`
-
-	// CustomTopicParameters includes the additional fields on top of
-	// the generated ones.
+	Tags                  []*Tag `json:"tags,omitempty"`
 	CustomTopicParameters `json:",inline"`
 }
 

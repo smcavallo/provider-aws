@@ -25,6 +25,9 @@ import (
 	svcapitypes "github.com/crossplane/provider-aws/apis/sns/v1alpha1"
 )
 
+// NOTE(muvaf): We return pointers in case the function needs to start with an
+// empty object, hence need to return a new pointer.
+
 // GenerateCreatePlatformEndpointInput returns a create input.
 func GenerateCreatePlatformEndpointInput(cr *svcapitypes.PlatformEndpoint) *svcsdk.CreatePlatformEndpointInput {
 	res := &svcsdk.CreatePlatformEndpointInput{}

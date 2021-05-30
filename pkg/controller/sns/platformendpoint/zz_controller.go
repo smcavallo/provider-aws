@@ -83,6 +83,8 @@ func (e *external) Create(ctx context.Context, mg cpresource.Managed) (managed.E
 
 	if resp.EndpointArn != nil {
 		cr.Status.AtProvider.EndpointARN = resp.EndpointArn
+	} else {
+		cr.Status.AtProvider.EndpointARN = nil
 	}
 
 	return e.postCreate(ctx, cr, resp, managed.ExternalCreation{}, err)

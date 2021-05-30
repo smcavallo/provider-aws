@@ -23,8 +23,10 @@ import (
 	svcsdk "github.com/aws/aws-sdk-go/service/sns"
 
 	svcapitypes "github.com/crossplane/provider-aws/apis/sns/v1alpha1"
-	awsclients "github.com/crossplane/provider-aws/pkg/clients"
 )
+
+// NOTE(muvaf): We return pointers in case the function needs to start with an
+// empty object, hence need to return a new pointer.
 
 // GenerateGetPlatformApplicationAttributesInput returns input for read
 // operation.
@@ -43,24 +45,6 @@ func GeneratePlatformApplication(resp *svcsdk.GetPlatformApplicationAttributesOu
 	cr := &svcapitypes.PlatformApplication{}
 
 	return cr
-}
-
-func lateInitialize(cr *svcapitypes.PlatformApplication, resp *svcsdk.GetPlatformApplicationAttributesOutput) error {
-	cr.Spec.ForProvider.EventDeliveryFailure = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.EventDeliveryFailure, resp.Attributes["EventDeliveryFailure"])
-	cr.Spec.ForProvider.EventEndpointCreated = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.EventEndpointCreated, resp.Attributes["EventEndpointCreated"])
-	cr.Spec.ForProvider.EventEndpointDeleted = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.EventEndpointDeleted, resp.Attributes["EventEndpointDeleted"])
-	cr.Spec.ForProvider.EventEndpointUpdated = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.EventEndpointUpdated, resp.Attributes["EventEndpointUpdated"])
-	cr.Spec.ForProvider.FailureFeedbackRoleARN = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.FailureFeedbackRoleARN, resp.Attributes["FailureFeedbackRoleArn"])
-	cr.Spec.ForProvider.PlatformCredential = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.PlatformCredential, resp.Attributes["PlatformCredential"])
-	cr.Spec.ForProvider.PlatformPrincipal = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.PlatformPrincipal, resp.Attributes["PlatformPrincipal"])
-	cr.Spec.ForProvider.SuccessFeedbackRoleARN = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.SuccessFeedbackRoleARN, resp.Attributes["SuccessFeedbackRoleArn"])
-	cr.Spec.ForProvider.SuccessFeedbackSampleRate = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.SuccessFeedbackSampleRate, resp.Attributes["SuccessFeedbackSampleRate"])
-	return nil
-}
-
-func basicUpToDateCheck(cr *svcapitypes.PlatformApplication, resp *svcsdk.GetPlatformApplicationAttributesOutput) bool {
-	// Not implemented for Attributes-based APIs.
-	return true
 }
 
 // GenerateCreatePlatformApplicationInput returns a create input.

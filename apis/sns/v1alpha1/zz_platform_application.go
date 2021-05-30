@@ -19,50 +19,35 @@ limitations under the License.
 package v1alpha1
 
 import (
+	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-
-	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 )
 
 // PlatformApplicationParameters defines the desired state of PlatformApplication
 type PlatformApplicationParameters struct {
 	// Region is which region the PlatformApplication will be created.
 	// +kubebuilder:validation:Required
-	Region string `json:"region"`
-
-	EventDeliveryFailure *string `json:"eventDeliveryFailure,omitempty"`
-
-	EventEndpointCreated *string `json:"eventEndpointCreated,omitempty"`
-
-	EventEndpointDeleted *string `json:"eventEndpointDeleted,omitempty"`
-
-	EventEndpointUpdated *string `json:"eventEndpointUpdated,omitempty"`
-
+	Region                 string  `json:"region"`
+	EventDeliveryFailure   *string `json:"eventDeliveryFailure,omitempty"`
+	EventEndpointCreated   *string `json:"eventEndpointCreated,omitempty"`
+	EventEndpointDeleted   *string `json:"eventEndpointDeleted,omitempty"`
+	EventEndpointUpdated   *string `json:"eventEndpointUpdated,omitempty"`
 	FailureFeedbackRoleARN *string `json:"failureFeedbackRoleARN,omitempty"`
-
 	// Application names must be made up of only uppercase and lowercase ASCII letters,
 	// numbers, underscores, hyphens, and periods, and must be between 1 and 256
 	// characters long.
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
-
 	// The following platforms are supported: ADM (Amazon Device Messaging), APNS
 	// (Apple Push Notification Service), APNS_SANDBOX, and GCM (Firebase Cloud
 	// Messaging).
 	// +kubebuilder:validation:Required
-	Platform *string `json:"platform"`
-
-	PlatformCredential *string `json:"platformCredential,omitempty"`
-
-	PlatformPrincipal *string `json:"platformPrincipal,omitempty"`
-
-	SuccessFeedbackRoleARN *string `json:"successFeedbackRoleARN,omitempty"`
-
-	SuccessFeedbackSampleRate *string `json:"successFeedbackSampleRate,omitempty"`
-
-	// CustomPlatformApplicationParameters includes the additional fields on top of
-	// the generated ones.
+	Platform                            *string `json:"platform"`
+	PlatformCredential                  *string `json:"platformCredential,omitempty"`
+	PlatformPrincipal                   *string `json:"platformPrincipal,omitempty"`
+	SuccessFeedbackRoleARN              *string `json:"successFeedbackRoleARN,omitempty"`
+	SuccessFeedbackSampleRate           *string `json:"successFeedbackSampleRate,omitempty"`
 	CustomPlatformApplicationParameters `json:",inline"`
 }
 

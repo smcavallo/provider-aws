@@ -23,8 +23,10 @@ import (
 	svcsdk "github.com/aws/aws-sdk-go/service/sns"
 
 	svcapitypes "github.com/crossplane/provider-aws/apis/sns/v1alpha1"
-	awsclients "github.com/crossplane/provider-aws/pkg/clients"
 )
+
+// NOTE(muvaf): We return pointers in case the function needs to start with an
+// empty object, hence need to return a new pointer.
 
 // GenerateGetTopicAttributesInput returns input for read
 // operation.
@@ -47,19 +49,6 @@ func GenerateTopic(resp *svcsdk.GetTopicAttributesOutput) *svcapitypes.Topic {
 	cr.Status.AtProvider.TopicARN = resp.Attributes["TopicArn"]
 
 	return cr
-}
-
-func lateInitialize(cr *svcapitypes.Topic, resp *svcsdk.GetTopicAttributesOutput) error {
-	cr.Spec.ForProvider.DeliveryPolicy = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.DeliveryPolicy, resp.Attributes["DeliveryPolicy"])
-	cr.Spec.ForProvider.DisplayName = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.DisplayName, resp.Attributes["DisplayName"])
-	cr.Spec.ForProvider.KMSMasterKeyID = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.KMSMasterKeyID, resp.Attributes["KmsMasterKeyId"])
-	cr.Spec.ForProvider.Policy = awsclients.LateInitializeStringPtr(cr.Spec.ForProvider.Policy, resp.Attributes["Policy"])
-	return nil
-}
-
-func basicUpToDateCheck(cr *svcapitypes.Topic, resp *svcsdk.GetTopicAttributesOutput) bool {
-	// Not implemented for Attributes-based APIs.
-	return true
 }
 
 // GenerateCreateTopicInput returns a create input.

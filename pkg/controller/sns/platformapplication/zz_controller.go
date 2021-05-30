@@ -83,12 +83,12 @@ func (e *external) Observe(ctx context.Context, mg cpresource.Managed) (managed.
 		return managed.ExternalObservation{ResourceExists: false}, awsclient.Wrap(cpresource.Ignore(IsNotFound, err), errDescribe)
 	}
 	currentSpec := cr.Spec.ForProvider.DeepCopy()
-	if err := e.lateInitialize(cr, resp); err != nil {
+	if err := e.lateInitialize(&cr.Spec.ForProvider, resp); err != nil {
 		return managed.ExternalObservation{}, errors.Wrap(err, "late-init failed")
 	}
 	GeneratePlatformApplication(resp).Status.AtProvider.DeepCopyInto(&cr.Status.AtProvider)
 
-	upToDate, err := e.isUpToDate(basicUpToDateCheck(cr, resp), cr, resp)
+	upToDate, err := e.isUpToDate(cr, resp)
 	if err != nil {
 		return managed.ExternalObservation{}, errors.Wrap(err, "isUpToDate check failed")
 	}
@@ -116,6 +116,8 @@ func (e *external) Create(ctx context.Context, mg cpresource.Managed) (managed.E
 
 	if resp.PlatformApplicationArn != nil {
 		cr.Status.AtProvider.PlatformApplicationARN = resp.PlatformApplicationArn
+	} else {
+		cr.Status.AtProvider.PlatformApplicationARN = nil
 	}
 
 	return e.postCreate(ctx, cr, resp, managed.ExternalCreation{}, err)
@@ -152,8 +154,9 @@ func newExternal(kube client.Client, client svcsdkapi.SNSAPI, opts []option) *ex
 		client:         client,
 		preObserve:     nopPreObserve,
 		postObserve:    nopPostObserve,
-		lateInitialize: lateInitialize,
-		isUpToDate:     nopIsUpToDate,
+		lateInitialize: nopLateInitialize,
+		isUpToDate:     alwaysUpToDate,
+		filterList:     nopFilterList,
 		preCreate:      nopPreCreate,
 		postCreate:     nopPostCreate,
 		preDelete:      nopPreDelete,
@@ -171,8 +174,8 @@ type external struct {
 	client         svcsdkapi.SNSAPI
 	preObserve     func(context.Context, *svcapitypes.PlatformApplication, *svcsdk.GetPlatformApplicationAttributesInput) error
 	postObserve    func(context.Context, *svcapitypes.PlatformApplication, *svcsdk.GetPlatformApplicationAttributesOutput, managed.ExternalObservation, error) (managed.ExternalObservation, error)
-	lateInitialize func(*svcapitypes.PlatformApplication, *svcsdk.GetPlatformApplicationAttributesOutput) error
-	isUpToDate     func(bool, *svcapitypes.PlatformApplication, *svcsdk.GetPlatformApplicationAttributesOutput) (bool, error)
+	lateInitialize func(*svcapitypes.PlatformApplicationParameters, *svcsdk.GetPlatformApplicationAttributesOutput) error
+	isUpToDate     func(*svcapitypes.PlatformApplication, *svcsdk.GetPlatformApplicationAttributesOutput) (bool, error)
 	preCreate      func(context.Context, *svcapitypes.PlatformApplication, *svcsdk.CreatePlatformApplicationInput) error
 	postCreate     func(context.Context, *svcapitypes.PlatformApplication, *svcsdk.CreatePlatformApplicationOutput, managed.ExternalCreation, error) (managed.ExternalCreation, error)
 	preDelete      func(context.Context, *svcapitypes.PlatformApplication, *svcsdk.DeletePlatformApplicationInput) (bool, error)
@@ -187,10 +190,13 @@ func nopPreObserve(context.Context, *svcapitypes.PlatformApplication, *svcsdk.Ge
 func nopPostObserve(_ context.Context, _ *svcapitypes.PlatformApplication, _ *svcsdk.GetPlatformApplicationAttributesOutput, obs managed.ExternalObservation, err error) (managed.ExternalObservation, error) {
 	return obs, err
 }
-
-func nopIsUpToDate(r bool, _ *svcapitypes.PlatformApplication, _ *svcsdk.GetPlatformApplicationAttributesOutput) (bool, error) {
-	return r, nil
+func nopLateInitialize(*svcapitypes.PlatformApplicationParameters, *svcsdk.GetPlatformApplicationAttributesOutput) error {
+	return nil
 }
+func alwaysUpToDate(*svcapitypes.PlatformApplication, *svcsdk.GetPlatformApplicationAttributesOutput) (bool, error) {
+	return true, nil
+}
+
 func nopPreCreate(context.Context, *svcapitypes.PlatformApplication, *svcsdk.CreatePlatformApplicationInput) error {
 	return nil
 }
